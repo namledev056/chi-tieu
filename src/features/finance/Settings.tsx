@@ -5,10 +5,22 @@ import { Download, Plus, Upload } from "lucide-react";
 import type { Category, TxType } from "./db";
 import { today } from "./dates";
 import { addCategory, deleteCategory, exportCSV, importCSV, updateCategory, wipeData } from "./repo";
+import { CategoryIcon, DEFAULT_ICON, ICON_KEYS, ICON_LABELS } from "./icons";
 import { Bubble, cx } from "./ui";
 import s from "./finance.module.css";
 
-const COLORS = ["#e8590c", "#1c7ed6", "#7048e8", "#f59f00", "#d6336c", "#0ca678", "#e03131", "#3b5bdb", "#2f9e44", "#868e96"];
+const COLORS: [string, string][] = [
+  ["#e8590c", "Cam"],
+  ["#1c7ed6", "Xanh dương"],
+  ["#7048e8", "Tím"],
+  ["#f59f00", "Vàng"],
+  ["#d6336c", "Hồng"],
+  ["#0ca678", "Xanh ngọc"],
+  ["#e03131", "Đỏ"],
+  ["#3b5bdb", "Chàm"],
+  ["#2f9e44", "Xanh lá"],
+  ["#868e96", "Xám"],
+];
 
 export default function Settings({ categories }: { categories: Category[] }) {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -94,7 +106,8 @@ function CategorySection({ type, categories }: { type: TxType; categories: Categ
       <div className={s.secHead}>
         <h2 className={s.secTitle}>{type === "expense" ? "Danh mục chi" : "Danh mục thu"}</h2>
         <button type="button" className={s.link} onClick={() => setEditing("new")}>
-          <Plus aria-hidden style={{ width: 14, height: 14, verticalAlign: -2 }} /> Thêm
+          <Plus aria-hidden style={{ width: 16, height: 16 }} />
+          Thêm
         </button>
       </div>
       <div className={s.list}>
@@ -119,15 +132,15 @@ function CategorySection({ type, categories }: { type: TxType; categories: Categ
 
 function CategoryEditor({ type, cat, onDone }: { type: TxType; cat?: Category; onDone: () => void }) {
   const [name, setName] = useState(cat?.name ?? "");
-  const [icon, setIcon] = useState(cat?.icon ?? (type === "expense" ? "📦" : "💰"));
-  const [color, setColor] = useState(cat?.color ?? COLORS[0]);
+  const [icon, setIcon] = useState<string>(cat?.icon ?? DEFAULT_ICON[type]);
+  const [color, setColor] = useState(cat?.color ?? COLORS[0][0]);
   const [error, setError] = useState("");
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     const n = name.trim();
     if (!n) return;
-    const data = { name: n, icon: icon.trim() || "📦", color, type };
+    const data = { name: n, icon, color, type };
     if (cat) await updateCategory(cat.id, data);
     else await addCategory(data);
     onDone();
@@ -146,13 +159,7 @@ function CategoryEditor({ type, cat, onDone }: { type: TxType; cat?: Category; o
   return (
     <form className={s.editor} onSubmit={save}>
       <div className={s.formRow} style={{ marginBottom: 0 }}>
-        <input
-          className={cx(s.input, s.emojiInput)}
-          value={icon}
-          onChange={(e) => setIcon(e.target.value)}
-          aria-label="Biểu tượng (emoji)"
-          maxLength={4}
-        />
+        <Bubble cat={{ ...(cat ?? { id: 0, order: 0, type }), name, icon, color }} />
         <input
           className={s.input}
           value={name}
@@ -163,14 +170,29 @@ function CategoryEditor({ type, cat, onDone }: { type: TxType; cat?: Category; o
           autoFocus
         />
       </div>
+      <div className={s.iconGrid} role="radiogroup" aria-label="Biểu tượng">
+        {ICON_KEYS.map((k) => (
+          <button
+            key={k}
+            type="button"
+            role="radio"
+            aria-checked={icon === k}
+            aria-label={ICON_LABELS[k]}
+            className={s.iconPick}
+            onClick={() => setIcon(k)}
+          >
+            <CategoryIcon name={k} />
+          </button>
+        ))}
+      </div>
       <div className={s.swatches} role="radiogroup" aria-label="Màu">
-        {COLORS.map((c) => (
+        {COLORS.map(([c, label]) => (
           <button
             key={c}
             type="button"
             role="radio"
             aria-checked={color === c}
-            aria-label={c}
+            aria-label={label}
             className={s.swatch}
             style={{ background: c }}
             onClick={() => setColor(c)}

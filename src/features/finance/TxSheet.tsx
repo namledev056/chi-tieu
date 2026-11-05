@@ -6,6 +6,7 @@ import type { Category, Transaction, TxType } from "./db";
 import { shortDateLabel } from "./dates";
 import { formatAmountInput } from "./money";
 import { deleteTransaction, saveTransaction } from "./repo";
+import { CategoryIcon } from "./icons";
 import { CloseButton, cx } from "./ui";
 import s from "./finance.module.css";
 
@@ -117,7 +118,7 @@ export default function TxSheet({
 
   return (
     <>
-      <div className={s.scrim} onClick={onClose} />
+      <div className={s.scrim} onClick={onClose} aria-hidden />
       <div className={s.sheet} role="dialog" aria-modal="true" aria-label={tx ? "Sửa giao dịch" : "Thêm giao dịch"}>
         <div className={s.grab} />
         <div className={s.sheetTop}>
@@ -179,9 +180,12 @@ export default function TxSheet({
                 role="radio"
                 aria-checked={categoryId === c.id}
                 className={s.catBtn}
+                style={{ "--c": c.color } as React.CSSProperties}
                 onClick={() => setCategoryId(c.id)}
               >
-                <span className={s.catEmoji}>{c.icon}</span>
+                <span className={s.catIc}>
+                  <CategoryIcon name={c.icon} />
+                </span>
                 <span className={s.catName}>{c.name}</span>
               </button>
             ))}

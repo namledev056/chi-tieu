@@ -39,9 +39,36 @@
   text-wrap: pretty;
 }
 
-/* Không vẽ vòng focus (luật I13 của skill UI); ô nhập vẫn có viền + ring khi gõ. */
+/* Vòng focus chỉ hiện khi dùng bàn phím (:focus-visible), chạm tay không thấy. */
 .app :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.app .input:focus-visible,
+.search input:focus-visible {
   outline: none;
+}
+
+/* Phản hồi khi chạm: đổi nền/độ mờ, không làm xê dịch bố cục. */
+.row,
+.catRow,
+.chip,
+.navItem,
+.plus,
+.btn,
+.iconBtn,
+.monthBtn,
+.fieldBtn,
+.catBtn,
+.monthCell,
+.iconPick,
+.seg button,
+.keypad button {
+  transition:
+    background-color 120ms ease-out,
+    opacity 120ms ease-out,
+    border-color 120ms ease-out;
 }
 
 .shell {
@@ -78,7 +105,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 40px;
+  height: 44px;
   padding: 0 4px;
   border: 0;
   background: none;
@@ -94,7 +121,7 @@
 }
 
 .monthSm {
-  height: 40px;
+  height: 44px;
   padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -109,8 +136,8 @@
 }
 
 .iconBtn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   flex: none;
   display: grid;
   place-items: center;
@@ -142,8 +169,9 @@
 .secHead {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  margin: 20px 4px 8px;
+  align-items: center;
+  min-height: 44px;
+  margin: 12px 4px 4px;
 }
 
 .secTitle {
@@ -157,7 +185,11 @@
 }
 
 .link {
-  padding: 8px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 4px;
   border: 0;
   background: none;
   color: var(--primary);
@@ -344,11 +376,34 @@
   box-shadow: inset 0 1px 0 var(--line);
 }
 
-.row:hover,
-.catRow:hover {
+@media (hover: hover) {
+  .row:hover,
+  .catRow:hover {
+    background: var(--grout);
+  }
+}
+
+.row:active,
+.catRow:active,
+.chip:active,
+.catBtn:active,
+.monthCell:active,
+.iconPick:active,
+.fieldBtn:active,
+.iconBtn:active {
   background: var(--grout);
 }
 
+.btn:active:not(:disabled),
+.plus:active:not(:disabled) {
+  opacity: 0.85;
+}
+
+.navItem:active {
+  background: var(--grout);
+}
+
+/* Ô icon danh mục: nền là màu danh mục pha nhạt, icon pha với màu chữ để đủ tương phản 3:1 ở cả 2 theme. */
 .bubble {
   width: 40px;
   height: 40px;
@@ -356,7 +411,13 @@
   display: grid;
   place-items: center;
   border-radius: 12px;
-  font-size: 20px;
+  background: color-mix(in srgb, var(--c, #868e96) 16%, transparent);
+  color: color-mix(in srgb, var(--c, #868e96) 75%, var(--fg));
+}
+
+.bubble svg {
+  width: 20px;
+  height: 20px;
 }
 
 .rowMain {
@@ -496,11 +557,12 @@
 }
 
 .chip {
+  position: relative;
   flex: none;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 36px;
+  height: 40px;
   padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -509,6 +571,19 @@
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
+}
+
+/* Mở rộng vùng chạm lên 44px mà không đổi kích thước chip */
+.chip::before {
+  content: "";
+  position: absolute;
+  inset: -2px 0;
+}
+
+.chip svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
 }
 
 .chip[aria-pressed="true"] {
@@ -607,6 +682,11 @@
   cursor: pointer;
 }
 
+.plus:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .plus svg {
   width: 26px;
   height: 26px;
@@ -666,7 +746,8 @@
 }
 
 .seg button {
-  height: 34px;
+  position: relative;
+  height: 40px;
   padding: 0 14px;
   border: 0;
   border-radius: 9px;
@@ -675,6 +756,13 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+}
+
+/* Vùng chạm 46px: tràn vào phần đệm của khối seg */
+.seg button::before {
+  content: "";
+  position: absolute;
+  inset: -3px 0;
 }
 
 .seg button[aria-pressed="true"] {
@@ -734,7 +822,7 @@
 }
 
 .amountEmpty {
-  color: var(--line);
+  color: color-mix(in srgb, var(--muted) 55%, transparent);
 }
 
 .caret {
@@ -772,9 +860,19 @@
   font-weight: 600;
 }
 
-.catEmoji {
-  font-size: 22px;
-  line-height: 1.2;
+.catIc {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--c, #868e96) 16%, transparent);
+  color: color-mix(in srgb, var(--c, #868e96) 75%, var(--fg));
+}
+
+.catIc svg {
+  width: 20px;
+  height: 20px;
 }
 
 .catName {
@@ -905,14 +1003,15 @@
 
 .btnSm {
   width: auto;
-  height: 40px;
+  height: 44px;
   padding: 0 14px;
   border-radius: 12px;
   font-size: 14px;
 }
 
 .textDanger {
-  padding: 8px;
+  min-height: 44px;
+  padding: 0 8px;
   border: 0;
   background: none;
   color: var(--expense);
@@ -1001,11 +1100,39 @@
   background: var(--grout);
 }
 
-.emojiInput {
-  flex: 0 0 56px;
-  text-align: center;
-  font-size: 20px;
-  padding: 0;
+.editor .formRow {
+  align-items: center;
+}
+
+.iconGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 4px;
+  max-height: 196px;
+  overflow-y: auto;
+  margin-top: 12px;
+  padding: 2px;
+}
+
+.iconPick {
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.iconPick svg {
+  width: 20px;
+  height: 20px;
+}
+
+.iconPick[aria-checked="true"] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
 }
 
 .swatches {
@@ -1016,11 +1143,18 @@
 }
 
 .swatch {
-  width: 28px;
-  height: 28px;
+  position: relative;
+  width: 36px;
+  height: 36px;
   border: 2px solid transparent;
   border-radius: 50%;
   cursor: pointer;
+}
+
+.swatch::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
 }
 
 .swatch[aria-checked="true"] {
@@ -1092,5 +1226,10 @@
   .caret,
   .sk {
     animation: none;
+  }
+
+  .app *,
+  .app *::before {
+    transition: none !important;
   }
 }

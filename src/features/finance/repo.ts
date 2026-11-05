@@ -1,4 +1,5 @@
 import { db, type Category, type Transaction, type TxType } from "./db";
+import { DEFAULT_ICON } from "./icons";
 import { parseAmount } from "./money";
 
 export type TxInput = Omit<Transaction, "id" | "createdAt">;
@@ -161,7 +162,7 @@ export async function importCSV(text: string) {
       if (found) return found.id;
       const cat: Omit<Category, "id"> = {
         name,
-        icon: type === "income" ? "💰" : "📦",
+        icon: DEFAULT_ICON[type],
         color: "#868e96",
         type,
         order: cats.length,

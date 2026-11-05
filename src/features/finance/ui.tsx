@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, Plus, RotateCw, TrendingUp, TriangleExclamationPoint, Wallet, X } from "lucide-react";
 import type { Category, Transaction } from "./db";
 import { currentMonth, daysInMonth, monthParts, today } from "./dates";
+import { CategoryIcon } from "./icons";
 import { formatVND } from "./money";
 import { budgetTone } from "./summary";
 import s from "./finance.module.css";
@@ -11,10 +12,9 @@ import s from "./finance.module.css";
 export const cx = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(" ");
 
 export function Bubble({ cat }: { cat?: Category }) {
-  const color = cat?.color ?? "#868e96";
   return (
-    <span className={s.bubble} style={{ background: `color-mix(in srgb, ${color} 16%, transparent)` }} aria-hidden>
-      {cat?.icon ?? "❔"}
+    <span className={s.bubble} style={{ "--c": cat?.color ?? "#868e96" } as React.CSSProperties} aria-hidden>
+      <CategoryIcon name={cat?.icon} />
     </span>
   );
 }
@@ -155,9 +155,14 @@ export function MonthSheet({
 }) {
   const [year, setYear] = useState(monthParts(month).y);
   const now = currentMonth();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   return (
     <>
-      <div className={s.scrim} onClick={onClose} />
+      <div className={s.scrim} onClick={onClose} aria-hidden />
       <div className={s.sheet} role="dialog" aria-modal="true" aria-label="Chọn tháng">
         <div className={s.grab} />
         <div className={s.sheetTop}>

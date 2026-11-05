@@ -5,6 +5,7 @@ import type { Category, Transaction } from "./db";
 import { dayLabel } from "./dates";
 import { formatVND } from "./money";
 import { byNewest } from "./summary";
+import { CategoryIcon } from "./icons";
 import { cx, EmptyMonth, TxRow } from "./ui";
 import s from "./finance.module.css";
 
@@ -64,7 +65,7 @@ export default function Transactions({
   const isFiltered = filter !== "all" || q !== "";
   const used = new Set(txs.map((t) => t.categoryId));
 
-  const chip = (value: TxFilter, label: string) => (
+  const chip = (value: TxFilter, label: string, icon?: string) => (
     <button
       key={String(value)}
       type="button"
@@ -72,6 +73,7 @@ export default function Transactions({
       aria-pressed={filter === value}
       onClick={() => setFilter(value)}
     >
+      {icon && <CategoryIcon name={icon} />}
       {label}
     </button>
   );
@@ -96,7 +98,7 @@ export default function Transactions({
           {chip("all", "Tất cả")}
           {chip("expense", "Chi")}
           {chip("income", "Thu")}
-          {categories.filter((c) => used.has(c.id)).map((c) => chip(c.id, `${c.icon} ${c.name}`))}
+          {categories.filter((c) => used.has(c.id)).map((c) => chip(c.id, c.name, c.icon))}
         </div>
       </div>
 
