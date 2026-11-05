@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Budget, Category, Transaction } from "./db";
 import { shiftMonth } from "./dates";
-import { formatAmountInput, parseAmount } from "./money";
+import { formatAmountInput, formatVND, parseAmount } from "./money";
 import { copyBudgets, setBudget } from "./repo";
 import { summarize } from "./summary";
 import { BudgetRow, Bubble, cx, Hero } from "./ui";
@@ -112,24 +112,34 @@ function LimitEditor({
   limit: number;
   onDone: (value: number | null) => void;
 }) {
-  const [draft, setDraft] = useState(limit ? formatAmountInput(String(limit)) : "");
+  // Đã có hạn mức thì mặc định là cộng thêm; chưa có thì nhập mức mới.
+  const [mode, setMode] = useState<"add" | "set">(limit > 0 ? "add" : "set");
+  const [draft, setDraft] = useState("");
+  const value = parseAmount(draft);
+  const next = mode === "add" ? limit + value : value;
+
+  const switchMode = () => {
+    setMode(mode === "add" ? "set" : "add");
+    setDraft(mode === "add" ? formatAmountInput(String(limit)) : "");
+  };
+
   return (
     <form
-      className={s.editRow}
+      className={cx(s.editRow, s.editRowWrap)}
       onSubmit={(e) => {
         e.preventDefault();
-        onDone(parseAmount(draft));
+        onDone(mode === "add" && value === 0 ? null : next);
       }}
     >
       <Bubble cat={cat} />
       <input
         className={cx(s.input, s.inputSm)}
         inputMode="numeric"
-        placeholder="Hạn mức ₫"
-        value={draft}
+        placeholder={mode === "add" ? "+ Cộng thêm ₫" : "Hạn mức ₫"}
+        value={mode === "add" && draft ? `+${draft}` : draft}
         onChange={(e) => setDraft(formatAmountInput(e.target.value))}
         onKeyDown={(e) => e.key === "Escape" && onDone(null)}
-        aria-label={`Hạn mức ${cat.name}`}
+        aria-label={mode === "add" ? `Cộng thêm vào hạn mức ${cat.name}` : `Hạn mức ${cat.name}`}
         autoFocus
       />
       {limit > 0 && (
@@ -140,6 +150,17 @@ function LimitEditor({
       <button type="submit" className={cx(s.btn, s.btnSm)}>
         Lưu
       </button>
+      {limit > 0 && (
+        <div className={s.editHint}>
+          <span>
+            Hiện tại {formatVND(limit)}
+            {mode === "add" && value > 0 && <> → <b>{formatVND(next)}</b></>}
+          </span>
+          <button type="button" className={s.link} onClick={switchMode}>
+            {mode === "add" ? "Nhập mức mới" : "Cộng thêm"}
+          </button>
+        </div>
+      )}
     </form>
   );
 }

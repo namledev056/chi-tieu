@@ -433,6 +433,35 @@
   background: var(--grout);
 }
 
+.editRowWrap {
+  flex-wrap: wrap;
+}
+
+.editRowWrap .inputSm {
+  flex: 1 1 120px;
+}
+
+.editHint {
+  display: flex;
+  flex-basis: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-left: 48px;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.editHint b {
+  color: var(--fg);
+}
+
+.editHint .link {
+  padding: 4px 0;
+  font-size: 13px;
+}
+
 .day {
   display: flex;
   justify-content: space-between;
