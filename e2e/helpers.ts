@@ -31,3 +31,20 @@ export async function addTx(
   await sheet.getByRole("button", { name: type === "income" ? "Lưu khoản thu" : "Lưu khoản chi" }).click();
   await expect(sheet).toBeHidden();
 }
+
+/** Các control nhìn thấy được có vùng chạm dưới 44px (tính cả phần mở rộng bằng ::before). */
+export async function smallTargets(page: Page) {
+  return page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>("button, [role=radio], input:not([type=file]):not([type=date])")]
+      .filter((el) => el.offsetParent !== null && !el.closest("[data-skip-target]"))
+      .map((el) => {
+        const r = el.getBoundingClientRect();
+        // Chip và ô màu mở rộng vùng chạm bằng ::before
+        const before = getComputedStyle(el, "::before");
+        const extra = before.content !== "none" && before.position === "absolute" ? -parseFloat(before.top) * 2 || 0 : 0;
+        return { label: el.getAttribute("aria-label") || el.textContent?.trim() || el.tagName, h: r.height + extra };
+      })
+      .filter((t) => t.h < 44 - 0.5)
+      .map((t) => `${t.label} (${Math.round(t.h)}px)`),
+  );
+}

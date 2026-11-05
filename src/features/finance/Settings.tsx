@@ -1,10 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Download, Plus, Upload } from "lucide-react";
+import { Download, Landmark, Plus, Upload } from "lucide-react";
+import { useLiveQuery } from "dexie-react-hooks";
 import type { Category, TxType } from "./db";
 import { today } from "./dates";
-import { addCategory, deleteCategory, exportCSV, importCSV, updateCategory, wipeData } from "./repo";
+import { addCategory, clearPayee, deleteCategory, exportCSV, getPayee, importCSV, updateCategory, wipeData } from "./repo";
+import { PayeeEditor } from "./Split";
+import { bankName } from "./vietqr";
 import { CategoryIcon, DEFAULT_ICON, ICON_KEYS, ICON_LABELS } from "./icons";
 import { Bubble, cx } from "./ui";
 import s from "./finance.module.css";
@@ -52,6 +55,7 @@ export default function Settings({ categories }: { categories: Category[] }) {
 
   return (
     <>
+      <PayeeSection />
       {(["expense", "income"] as const).map((type) => (
         <CategorySection key={type} type={type} categories={categories.filter((c) => c.type === type)} />
       ))}
@@ -95,6 +99,56 @@ export default function Settings({ categories }: { categories: Category[] }) {
           <code>2026-11-04,chi,45000,Ăn uống,Phở</code>
         </p>
       </section>
+    </>
+  );
+}
+
+function PayeeSection() {
+  const payee = useLiveQuery(getPayee);
+  const [editing, setEditing] = useState(false);
+  if (payee === undefined) return null;
+  return (
+    <>
+      <div className={s.secHead}>
+        <h2 className={s.secTitle}>Tài khoản nhận tiền</h2>
+        {payee && !editing && (
+          <button
+            type="button"
+            className={cx(s.link, s.textDangerLink)}
+            onClick={() => window.confirm("Xóa tài khoản nhận tiền?") && clearPayee()}
+          >
+            Xóa
+          </button>
+        )}
+      </div>
+      {editing || !payee ? (
+        <section className={s.card}>
+          {!payee && !editing ? (
+            <>
+              <p className={s.note}>Thêm tài khoản ngân hàng để khi chia tiền, app tạo mã QR có sẵn số tiền cho từng người.</p>
+              <button type="button" className={cx(s.btn, s.btnGhost, s.btnSm, s.mt)} onClick={() => setEditing(true)}>
+                <Plus aria-hidden />
+                Thêm tài khoản
+              </button>
+            </>
+          ) : (
+            <PayeeEditor payee={payee} onDone={() => setEditing(false)} />
+          )}
+        </section>
+      ) : (
+        <div className={s.list}>
+          <button type="button" className={s.row} onClick={() => setEditing(true)}>
+            <span className={s.bubble} aria-hidden>
+              <Landmark />
+            </span>
+            <span className={s.rowMain}>
+              <span className={s.rowName}>{`${bankName(payee.bin)} · ${payee.account}`}</span>
+              {payee.name && <span className={s.rowSub}>{payee.name}</span>}
+            </span>
+            <span className={s.link}>Sửa</span>
+          </button>
+        </div>
+      )}
     </>
   );
 }

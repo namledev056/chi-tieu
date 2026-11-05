@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Calendar, Delete } from "lucide-react";
+import { Calendar, Delete, Users } from "lucide-react";
 import type { Category, Transaction, TxType } from "./db";
 import { shortDateLabel } from "./dates";
 import { formatAmountInput } from "./money";
 import { deleteTransaction, saveTransaction } from "./repo";
 import { CategoryIcon } from "./icons";
+import SplitSheet from "./Split";
 import { CloseButton, cx } from "./ui";
 import s from "./finance.module.css";
 
@@ -35,6 +36,7 @@ export default function TxSheet({
   const [date, setDate] = useState(tx?.date ?? defaultDate);
   const [note, setNote] = useState(tx?.note ?? "");
   const [busy, setBusy] = useState(false);
+  const [splitting, setSplitting] = useState(false);
   const dateRef = useRef<HTMLInputElement>(null);
   const amountRef = useRef<HTMLDivElement>(null);
   const valueRef = useRef<HTMLSpanElement>(null);
@@ -82,6 +84,7 @@ export default function TxSheet({
   // Bàn phím vật lý (máy tính): gõ số, Backspace, Enter để lưu, Esc để đóng.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (splitting) return; // sheet chia tiền đang mở, nó tự xử lý phím
       if (e.key === "Escape") return onClose();
       if ((e.target as HTMLElement).tagName === "INPUT") {
         if (e.key === "Enter") save();
@@ -93,7 +96,7 @@ export default function TxSheet({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, press, save]);
+  }, [onClose, press, save, splitting]);
 
   const switchType = (t: TxType) => {
     setType(t);
@@ -213,10 +216,30 @@ export default function TxSheet({
           </button>
         </div>
 
-        <button type="button" className={s.btn} disabled={!valid || busy} onClick={save}>
-          {tx ? "Lưu thay đổi" : type === "expense" ? "Lưu khoản chi" : "Lưu khoản thu"}
-        </button>
+        <div className={s.saveRow}>
+          {type === "expense" && (
+            <button
+              type="button"
+              className={cx(s.btn, s.btnGhost, s.btnAuto)}
+              disabled={amount <= 0}
+              onClick={() => setSplitting(true)}
+            >
+              <Users aria-hidden />
+              Chia tiền
+            </button>
+          )}
+          <button type="button" className={s.btn} disabled={!valid || busy} onClick={save}>
+            {tx ? "Lưu thay đổi" : type === "expense" ? "Lưu khoản chi" : "Lưu khoản thu"}
+          </button>
+        </div>
       </div>
+      {splitting && (
+        <SplitSheet
+          total={amount}
+          title={note.trim() || categories.find((c) => c.id === categoryId)?.name || ""}
+          onClose={() => setSplitting(false)}
+        />
+      )}
     </>
   );
 }

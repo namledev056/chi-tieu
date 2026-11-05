@@ -1,6 +1,7 @@
 import { db, type Category, type Transaction, type TxType } from "./db";
 import { DEFAULT_ICON } from "./icons";
 import { parseAmount } from "./money";
+import type { Payee } from "./vietqr";
 
 export type TxInput = Omit<Transaction, "id" | "createdAt">;
 
@@ -77,6 +78,15 @@ export async function copyBudgets(fromMonth: string, toMonth: string) {
   });
   return prev.length;
 }
+
+/* ---------- Tài khoản nhận tiền (chia tiền) ---------- */
+
+export const getPayee = async () =>
+  ((await db.settings.get("payee"))?.value as Payee | undefined) ?? null;
+
+export const savePayee = (payee: Payee) => db.settings.put({ key: "payee", value: payee });
+
+export const clearPayee = () => db.settings.delete("payee");
 
 /* ---------- Dữ liệu ---------- */
 

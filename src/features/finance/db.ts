@@ -49,10 +49,17 @@ export const DEFAULT_CATEGORIES: Omit<Category, "id">[] = [
   { name: "Thu khác", icon: "piggy-bank", color: "#74b816", type: "income", order: 12 },
 ];
 
+/** Cài đặt dạng khóa–giá trị, vd { key: "payee", value: Payee } */
+export interface Setting {
+  key: string;
+  value: unknown;
+}
+
 class FinanceDB extends Dexie {
   transactions!: EntityTable<Transaction, "id">;
   categories!: EntityTable<Category, "id">;
   budgets!: EntityTable<Budget, "id">;
+  settings!: EntityTable<Setting, "key">;
 
   constructor() {
     super("chi-tieu");
@@ -71,6 +78,8 @@ class FinanceDB extends Dexie {
           c.icon = EMOJI_TO_ICON[c.icon.trim()] ?? DEFAULT_ICON[c.type] ?? "tag";
         }),
     );
+    // v3: bảng cài đặt (tài khoản nhận tiền khi chia tiền).
+    this.version(3).stores({ settings: "key" });
     this.on("populate", (tx) => {
       tx.table("categories").bulkAdd(DEFAULT_CATEGORIES);
     });

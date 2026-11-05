@@ -1,5 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-import { addTx, EMOJI, nav } from "./helpers";
+import { expect, test } from "@playwright/test";
+import { addTx, EMOJI, nav, smallTargets } from "./helpers";
 
 test("icon danh mục là SVG, không còn emoji ở bất kỳ màn nào", async ({ page }) => {
   await page.goto("/");
@@ -91,22 +91,6 @@ test("dữ liệu bản cũ (icon emoji) được tự chuyển sang icon SVG", 
   // Emoji lạ (🐶) rơi về icon mặc định của loại chi.
   expect(icons).toEqual(["utensils", "package", "briefcase"]);
 });
-
-async function smallTargets(page: Page) {
-  return page.evaluate(() =>
-    [...document.querySelectorAll<HTMLElement>("button, [role=radio], input:not([type=file]):not([type=date])")]
-      .filter((el) => el.offsetParent !== null && !el.closest("[data-skip-target]"))
-      .map((el) => {
-        const r = el.getBoundingClientRect();
-        // Chip và ô màu mở rộng vùng chạm bằng ::before
-        const before = getComputedStyle(el, "::before");
-        const extra = before.content !== "none" && before.position === "absolute" ? -parseFloat(before.top) * 2 || 0 : 0;
-        return { label: el.getAttribute("aria-label") || el.textContent?.trim() || el.tagName, h: r.height + extra };
-      })
-      .filter((t) => t.h < 44 - 0.5)
-      .map((t) => `${t.label} (${Math.round(t.h)}px)`),
-  );
-}
 
 test("mọi nút đều có vùng chạm tối thiểu 44px", async ({ page }) => {
   await page.goto("/");
