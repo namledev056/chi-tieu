@@ -1,0 +1,1067 @@
+/* Bố cục theo wireframe phương án A (Còn lại trước). Token nền/chữ/viền ở src/app/globals.css. */
+.app {
+  --primary: var(--accent);
+  --on-primary: var(--on-accent);
+  --income: #237a35;
+  --expense: #c92a2a;
+  --warn: #b35c00;
+  --radius: 16px;
+  --primary-soft: color-mix(in srgb, var(--primary) 10%, transparent);
+  --ring: color-mix(in srgb, var(--primary) 18%, transparent);
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+@media (prefers-color-scheme: dark) {
+  .app {
+    --income: #69db7c;
+    --expense: #ff8787;
+    --warn: #ffc078;
+  }
+}
+
+/* :where() giữ độ ưu tiên thấp, để class của từng control (cỡ chữ, màu) thắng. */
+:where(.app) button,
+:where(.app) input {
+  font: inherit;
+  color: inherit;
+}
+
+.app p,
+.app li,
+.pace span {
+  text-wrap: pretty;
+}
+
+/* Không vẽ vòng focus (luật I13 của skill UI); ô nhập vẫn có viền + ring khi gõ. */
+.app :focus-visible {
+  outline: none;
+}
+
+.shell {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 16px calc(96px + env(safe-area-inset-bottom));
+}
+
+/* ---------- Header ---------- */
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: calc(56px + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
+  background: var(--bg);
+}
+
+.h1 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.topActions {
+  display: flex;
+  gap: 8px;
+}
+
+.monthBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.monthBtn svg {
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+}
+
+.monthSm {
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.monthSm svg {
+  width: 16px;
+  height: 16px;
+}
+
+.iconBtn {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.iconBtn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.iconBtnPlain {
+  border: 0;
+  background: none;
+}
+
+/* ---------- Khối ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.secHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 20px 4px 8px;
+}
+
+.secTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.secHint {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.link {
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.in {
+  color: var(--income);
+}
+
+.out {
+  color: var(--expense);
+}
+
+/* Số còn lại */
+.heroLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.heroNum {
+  margin: 2px 0 12px;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.bar {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--grout);
+}
+
+.bar > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 5px;
+  background: var(--primary);
+  transition: width 0.3s;
+}
+
+.bar > i.warn {
+  background: var(--warn);
+}
+
+.bar > i.over {
+  background: var(--expense);
+}
+
+.bar > b {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--fg);
+}
+
+.thin {
+  height: 6px;
+}
+
+.thin > i {
+  border-radius: 3px;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.pace {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+  font-size: 14px;
+}
+
+.paceOver {
+  background: color-mix(in srgb, var(--expense) 12%, transparent);
+}
+
+.pace svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 1px;
+  color: var(--warn);
+}
+
+.paceOver svg {
+  color: var(--expense);
+}
+
+.heroCta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Thu / Chi / Dư */
+.stats {
+  padding: 4px 16px;
+}
+
+.stats > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.stats > div + div {
+  border-top: 1px solid var(--line);
+}
+
+.statL {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.statV {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Danh sách ---------- */
+.list {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 16px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row + .row,
+.catRow + .catRow,
+.catRow + .editRow,
+.editRow + .catRow,
+.row + .editRow,
+.editRow + .row,
+.editor + .row,
+.row + .editor {
+  /* Kẻ bằng bóng trong để mọi dòng cao bằng nhau */
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.row:hover,
+.catRow:hover {
+  background: var(--grout);
+}
+
+.bubble {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-size: 20px;
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.rowName {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowSub {
+  font-size: 13px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amt {
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.catRow {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.catRow .bubble {
+  grid-row: span 2;
+}
+
+.catRow .bar {
+  grid-column: 2 / 4;
+}
+
+.catRight {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.catSub {
+  grid-column: 2 / 4;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.editRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--grout);
+}
+
+.day {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.resultMeta {
+  margin: 4px 4px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- Lọc ---------- */
+.chipsWrap {
+  margin: 0 -16px 4px;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 16px 8px;
+  scrollbar-width: none;
+}
+
+.chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  margin-bottom: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.search svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--muted);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  font-size: 16px;
+}
+
+.search:focus-within,
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+/* ---------- Thanh dưới ---------- */
+.nav {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 10;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.navIn {
+  max-width: 560px;
+  height: 64px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.navItem svg {
+  width: 22px;
+  height: 22px;
+}
+
+.navItem[aria-current="page"] {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.plus {
+  align-self: center;
+  justify-self: center;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 16px;
+  background: var(--primary);
+  color: var(--on-primary);
+  cursor: pointer;
+}
+
+.plus svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* ---------- Sheet ---------- */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.4);
+  animation: fade 0.2s ease-out;
+}
+
+.sheet {
+  position: fixed;
+  z-index: 21;
+  inset: auto 0 0 0;
+  max-width: 560px;
+  max-height: 94dvh;
+  margin: 0 auto;
+  overflow-y: auto;
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 20px 20px 0 0;
+  background: var(--bg);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
+  animation: up 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.grab {
+  width: 36px;
+  height: 4px;
+  margin: 0 auto 8px;
+  border-radius: 2px;
+  background: var(--line);
+}
+
+.sheetTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.sheetTitle {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--grout);
+}
+
+.seg button {
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.seg button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.amountRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.amount {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 6px;
+  height: 72px;
+  overflow: hidden;
+  padding: 8px 4px 12px;
+  font-size: 40px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.amountRow .fieldBtn {
+  flex: none;
+}
+
+/* Máy rất hẹp: nút ngày chỉ còn icon để số tiền đủ chỗ */
+@media (max-width: 359px) {
+  .dateLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+.amountValue {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.amount small {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.amountEmpty {
+  color: var(--line);
+}
+
+.caret {
+  width: 2px;
+  height: 36px;
+  align-self: center;
+  background: var(--primary);
+  animation: blink 1s steps(1) infinite;
+}
+
+.catGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.catBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 4px;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.catBtn[aria-checked="true"] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  font-weight: 600;
+}
+
+.catEmoji {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.catName {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.formRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fieldBtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.fieldBtn svg {
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+}
+
+.hiddenDate {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 16px;
+  outline: 0;
+}
+
+.inputSm {
+  flex: 0 1 140px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.keypad button {
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 22px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.keypad button:active {
+  background: var(--grout);
+}
+
+.keypad svg {
+  width: 22px;
+  height: 22px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 52px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btnGhost {
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--line);
+}
+
+.btnDanger {
+  background: none;
+  color: var(--expense);
+  border: 1px solid var(--line);
+}
+
+.btnSm {
+  width: auto;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.textDanger {
+  padding: 8px;
+  border: 0;
+  background: none;
+  color: var(--expense);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Chọn tháng */
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+
+.monthCell {
+  height: 48px;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.monthCell[aria-current="true"] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  font-weight: 700;
+}
+
+/* ---------- Trạng thái ---------- */
+.sk {
+  border-radius: 8px;
+  background: var(--grout);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.emptyIc {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+  border-radius: 14px;
+  background: var(--grout);
+}
+
+.emptyIc svg {
+  width: 24px;
+  height: 24px;
+  color: var(--muted);
+}
+
+.empty h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.empty p {
+  max-width: 280px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.empty .btn {
+  width: auto;
+  height: 44px;
+  margin-top: 8px;
+  padding: 0 18px;
+  font-size: 15px;
+}
+
+/* ---------- Cài đặt ---------- */
+.editor {
+  padding: 12px 16px;
+  background: var(--grout);
+}
+
+.emojiInput {
+  flex: 0 0 56px;
+  text-align: center;
+  font-size: 20px;
+  padding: 0;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.swatch {
+  width: 28px;
+  height: 28px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.swatch[aria-checked="true"] {
+  border-color: var(--fg);
+  box-shadow: inset 0 0 0 2px var(--surface);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.note {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.hint code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--grout);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.errorText {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--expense);
+}
+
+.mt {
+  margin-top: 12px;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrim,
+  .sheet,
+  .caret,
+  .sk {
+    animation: none;
+  }
+}

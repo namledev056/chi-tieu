@@ -1,0 +1,68 @@
+:root {
+  --bg: #f4f1e8;
+  --surface: #ffffff;
+  --fg: #1b1d1f;
+  --muted: #5f646b;
+  --line: #ebe6da;
+  --grout: rgba(0, 0, 0, 0.06);
+  --accent: #1b1d1f;
+  --on-accent: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15171a;
+    --surface: #202328;
+    --fg: #f1efe9;
+    --muted: #a3a8b0;
+    --line: #353a41;
+    --grout: rgba(255, 255, 255, 0.05);
+    --accent: #f2c230;
+    --on-accent: #1b1d1f;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-main), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Thanh cuộn: 4px, ẩn tới khi rê hay cuộn */
+* { --scrollbar-thumb: transparent; }
+*:hover { --scrollbar-thumb: color-mix(in srgb, var(--fg) 16%, transparent); }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--fg) 40%, transparent); }
+@supports not selector(::-webkit-scrollbar) {
+  * { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+  *:hover { scrollbar-color: color-mix(in srgb, var(--fg) 18%, transparent) transparent; }
+}
+
+.boot {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 15px;
+}
