@@ -59,6 +59,10 @@ e2e/                     Playwright test
 
 Mọi đóng góp đều được hoan nghênh. Xem [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Ủng hộ
+
+Nếu app có ích với bạn, bạn có thể ủng hộ qua [GitHub Sponsors](https://github.com/sponsors/namlxuit056).
+
 ## Giấy phép
 
 [MIT](LICENSE)
