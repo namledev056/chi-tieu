@@ -3,7 +3,7 @@ import type { Budget, Transaction } from "./db";
 export interface MonthSummary {
   income: number;
   expense: number;
-  /** Chi theo danh mục */
+  /** Spending per category */
   byCat: Map<number, number>;
   totalLimit: number;
 }
@@ -23,7 +23,7 @@ export function summarize(txs: Transaction[], budgets: Budget[]): MonthSummary {
   return { income, expense, byCat, totalLimit };
 }
 
-/** "over" khi vượt, "warn" khi từ 80% hoặc đang tiêu nhanh hơn nhịp tháng. */
+/** "over" when exceeded; "warn" from 80%, or when spending ahead of the monthly pace. */
 export function budgetTone(ratio: number, fast = false) {
   if (ratio > 1) return "over" as const;
   if (ratio >= 0.8 || fast) return "warn" as const;

@@ -1,17 +1,18 @@
 /**
- * VietQR (chuẩn EMVCo của NAPAS): tạo và đọc mã QR chuyển khoản ngân hàng.
- * Chạy hoàn toàn trên máy, không gọi dịch vụ ngoài.
+ * VietQR (NAPAS's EMVCo profile): build and read bank-transfer QR codes.
+ * Runs entirely on-device, with no external services.
  */
+import type { Dict } from "./i18n";
 
 export interface Payee {
-  /** Mã BIN ngân hàng 6 số, vd 970436 */
+  /** 6-digit bank BIN, e.g. 970436 */
   bin: string;
   account: string;
-  /** Tên chủ tài khoản (chỉ để hiển thị trên ảnh chia sẻ) */
+  /** Account holder name (only shown on the shared image) */
   name: string;
 }
 
-/** Ngân hàng phổ biến: tên ngắn + BIN theo danh sách NAPAS. */
+/** Common banks: short name + BIN from the NAPAS list. */
 export const BANKS: { bin: string; name: string }[] = [
   { bin: "970436", name: "Vietcombank" },
   { bin: "970415", name: "VietinBank" },
@@ -40,13 +41,13 @@ export const BANKS: { bin: string; name: string }[] = [
   { bin: "546034", name: "CAKE" },
 ];
 
-export const bankName = (bin: string) => BANKS.find((b) => b.bin === bin)?.name ?? `Ngân hàng ${bin}`;
+export const bankName = (bin: string, t: Dict) => BANKS.find((b) => b.bin === bin)?.name ?? t.bankFallback(bin);
 
 const NAPAS_GUID = "A000000727";
 
 const tlv = (id: string, value: string) => `${id}${String(value.length).padStart(2, "0")}${value}`;
 
-/** CRC-16/CCITT-FALSE (poly 0x1021, init 0xFFFF), như EMVCo yêu cầu. */
+/** CRC-16/CCITT-FALSE (poly 0x1021, init 0xFFFF), as EMVCo requires. */
 export function crc16(input: string) {
   let crc = 0xffff;
   for (let i = 0; i < input.length; i++) {
@@ -56,7 +57,7 @@ export function crc16(input: string) {
   return crc.toString(16).toUpperCase().padStart(4, "0");
 }
 
-/** Bỏ dấu tiếng Việt, chỉ giữ chữ/số/khoảng trắng — nhiều ngân hàng từ chối nội dung có dấu. */
+/** Strip Vietnamese diacritics and keep only letters/digits/spaces; many banks reject accented notes. */
 export function toTransferNote(text: string, max = 25) {
   return text
     .normalize("NFD")
@@ -99,7 +100,7 @@ function readTLV(data: string) {
   return i === data.length ? out : null;
 }
 
-/** Đọc mã QR ngân hàng (VietQR) → BIN + số tài khoản. Trả null nếu không phải VietQR. */
+/** Read a bank QR (VietQR) → BIN + account number. Returns null if it isn't VietQR. */
 export function parseVietQR(data: string): Omit<Payee, "name"> & { name?: string } | null {
   const text = data.trim();
   const top = readTLV(text);
@@ -115,7 +116,7 @@ export function parseVietQR(data: string): Omit<Payee, "name"> & { name?: string
   return { bin, account, name: top.get("59") };
 }
 
-/** Chia đều, làm tròn lên tới 1.000 ₫ để dễ chuyển khoản. */
+/** Split evenly, rounding up to 1,000 ₫ so transfers are easy. */
 export function splitAmount(total: number, people: number) {
   const exact = total / people;
   return exact >= 1000 ? Math.ceil(exact / 1000) * 1000 : Math.ceil(exact);

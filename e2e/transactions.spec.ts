@@ -5,13 +5,13 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/");
 });
 
-test("tháng trống hiện hướng dẫn và nút thêm khoản chi", async ({ page }) => {
+test("empty month shows guidance and an add-expense button", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /chưa có giao dịch nào/ })).toBeVisible();
   await page.getByRole("button", { name: "Thêm khoản chi" }).click();
   await expect(page.getByRole("dialog", { name: "Thêm giao dịch" })).toBeVisible();
 });
 
-test("thêm khoản chi và khoản thu, tổng quan tính đúng", async ({ page }) => {
+test("adding expense and income updates the overview totals", async ({ page }) => {
   await addTx(page, { amount: 45000, category: "Ăn uống", note: "Phở" });
   await addTx(page, { amount: 10000000, category: "Lương", type: "income" });
 
@@ -24,7 +24,7 @@ test("thêm khoản chi và khoản thu, tổng quan tính đúng", async ({ pag
   await expect(page.getByRole("button", { name: /Phở.*Ăn uống/ })).toContainText(`−${vnd(45000)}`);
 });
 
-test("nút Lưu bị khóa khi chưa nhập số tiền, nút xóa một số hoạt động", async ({ page }) => {
+test("Save is disabled without an amount; backspace works", async ({ page }) => {
   await page.getByRole("button", { name: "Thêm giao dịch" }).click();
   const sheet = page.getByRole("dialog", { name: "Thêm giao dịch" });
   const save = sheet.getByRole("button", { name: "Lưu khoản chi" });
@@ -40,7 +40,7 @@ test("nút Lưu bị khóa khi chưa nhập số tiền, nút xóa một số ho
   await expect(sheet).toBeHidden();
 });
 
-test("sửa rồi xóa một giao dịch", async ({ page }) => {
+test("edit then delete a transaction", async ({ page }) => {
   await addTx(page, { amount: 30000, category: "Đi lại", note: "Grab" });
 
   await page.getByRole("button", { name: /Grab/ }).click();
@@ -55,7 +55,7 @@ test("sửa rồi xóa một giao dịch", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /chưa có giao dịch nào/ })).toBeVisible();
 });
 
-test("lọc theo Thu/Chi, theo danh mục và tìm kiếm", async ({ page }) => {
+test("filter by income/expense, by category, and search", async ({ page }) => {
   await addTx(page, { amount: 45000, category: "Ăn uống", note: "Phở bò" });
   await addTx(page, { amount: 200000, category: "Mua sắm", note: "Áo thun" });
   await addTx(page, { amount: 5000000, category: "Thưởng", type: "income" });
@@ -80,13 +80,13 @@ test("lọc theo Thu/Chi, theo danh mục và tìm kiếm", async ({ page }) => 
   await expect(rows.first()).toContainText("Phở bò");
 });
 
-test("dữ liệu còn nguyên sau khi tải lại trang", async ({ page }) => {
+test("data survives a page reload", async ({ page }) => {
   await addTx(page, { amount: 75000, category: "Giải trí", note: "Xem phim" });
   await page.reload();
   await expect(page.getByRole("button", { name: /Xem phim/ })).toContainText(vnd(75000));
 });
 
-test("chọn tháng khác rồi quay về tháng này", async ({ page }) => {
+test("pick another month then return to this month", async ({ page }) => {
   await addTx(page, { amount: 45000, category: "Ăn uống" });
   const picker = page.getByRole("button", { name: "Chọn tháng" });
   const original = await picker.textContent();
@@ -102,7 +102,7 @@ test("chọn tháng khác rồi quay về tháng này", async ({ page }) => {
   await page.getByRole("dialog", { name: "Chọn tháng" }).getByRole("button", { name: "Về tháng này" }).click();
   await expect(picker).toHaveText(original!);
 
-  // Esc đóng sheet chọn tháng
+  // Esc closes the month picker
   await picker.click();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog", { name: "Chọn tháng" })).toBeHidden();

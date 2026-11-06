@@ -1,24 +1,24 @@
-# Đóng góp cho Chi tiêu
+# Contributing to Chi tiêu
 
-Cảm ơn bạn đã quan tâm! Vài hướng dẫn ngắn:
+Thanks for your interest! A few short guidelines:
 
-## Báo lỗi / đề xuất
+## Reporting bugs and suggesting features
 
-Mở [issue](https://github.com/namledev056/chi-tieu/issues) và mô tả: bạn làm gì, mong đợi gì, thực tế ra sao, dùng trình duyệt/thiết bị nào. Ảnh chụp màn hình rất có ích.
+Open an [issue](https://github.com/namledev056/chi-tieu/issues) and describe what you did, what you expected, what actually happened, and which browser and device you used. Screenshots help a lot.
 
-**Đừng** đính kèm file CSV chứa dữ liệu chi tiêu thật hay số tài khoản ngân hàng thật.
+**Don't** attach CSV files with real spending data or real bank account numbers.
 
-## Gửi pull request
+## Pull requests
 
-1. Fork repo và tạo branch từ `main`.
-2. `npm install`, rồi `npm run dev` để chạy thử.
-3. Giữ thay đổi nhỏ và tập trung vào một việc.
-4. Thêm hoặc cập nhật test Playwright trong `e2e/` nếu thay đổi hành vi.
-5. Đảm bảo `npm run lint` và `npm run test:e2e` đều qua.
-6. Mở PR, mô tả thay đổi và lý do.
+1. Fork the repo and create a branch from `main`.
+2. Run `npm install`, then `npm run dev` to try it out.
+3. Keep changes small and focused on one thing.
+4. Add or update Playwright tests in `e2e/` when you change behavior.
+5. Make sure `npm run lint` and `npm run test:e2e` both pass.
+6. Open a PR describing what changed and why.
 
-## Nguyên tắc
+## Principles
 
-- **Dữ liệu ở lại trên máy.** Không thêm tính năng gửi dữ liệu người dùng ra ngoài (analytics, API bên thứ ba...) trừ khi đã thảo luận trong issue trước.
-- Giao diện ưu tiên điện thoại; kiểm tra ở chiều rộng màn hình nhỏ.
-- Chữ trong giao diện dùng tiếng Việt.
+- **Data stays on the device.** Don't add anything that sends user data elsewhere (analytics, third-party APIs, ...) without discussing it in an issue first.
+- Mobile first: check your change at narrow screen widths.
+- All user-facing text goes through `src/features/finance/i18n.tsx`, with both Vietnamese and English strings. Code and comments are in English.

@@ -12,11 +12,13 @@ import Budgets from "./Budgets";
 import Settings from "./Settings";
 import TxSheet from "./TxSheet";
 import { cx, Loading, LoadError, MonthButton, MonthSheet } from "./ui";
+import { useT } from "./i18n";
 import s from "./finance.module.css";
 
 type Tab = "overview" | "transactions" | "budgets" | "settings";
 
 export default function FinanceApp() {
+  const t = useT();
   const [tab, setTab] = useState<Tab>("overview");
   const [month, setMonth] = useState(currentMonth);
   const [sheet, setSheet] = useState<{ tx: Transaction | null } | null>(null);
@@ -49,13 +51,13 @@ export default function FinanceApp() {
       monthBtn(false)
     ) : tab === "transactions" ? (
       <>
-        <h1 className={s.h1}>Giao dịch</h1>
+        <h1 className={s.h1}>{t.transactions}</h1>
         <div className={s.topActions}>
           {monthBtn(true)}
           <button
             type="button"
             className={s.iconBtn}
-            aria-label="Tìm"
+            aria-label={t.search}
             aria-pressed={showSearch}
             onClick={() => {
               setShowSearch(!showSearch);
@@ -68,11 +70,11 @@ export default function FinanceApp() {
       </>
     ) : tab === "budgets" ? (
       <>
-        <h1 className={s.h1}>Ngân sách</h1>
+        <h1 className={s.h1}>{t.budgets}</h1>
         {monthBtn(true)}
       </>
     ) : (
-      <h1 className={s.h1}>Cài đặt</h1>
+      <h1 className={s.h1}>{t.settings}</h1>
     );
 
   let content: React.ReactNode;
@@ -132,21 +134,21 @@ export default function FinanceApp() {
         <main>{content}</main>
       </div>
 
-      <nav className={s.nav} aria-label="Điều hướng">
+      <nav className={s.nav} aria-label={t.nav}>
         <div className={s.navIn}>
-          {navItem("overview", LayoutDashboard, "Tổng quan")}
-          {navItem("transactions", List, "Giao dịch")}
+          {navItem("overview", LayoutDashboard, t.overview)}
+          {navItem("transactions", List, t.transactions)}
           <button
             type="button"
             className={cx(s.plus)}
             onClick={openAdd}
             disabled={!ready}
-            aria-label="Thêm giao dịch"
+            aria-label={t.addTx}
           >
             <Plus />
           </button>
-          {navItem("budgets", Target, "Ngân sách")}
-          {navItem("settings", SettingsIcon, "Cài đặt")}
+          {navItem("budgets", Target, t.budgets)}
+          {navItem("settings", SettingsIcon, t.settings)}
         </div>
       </nav>
 

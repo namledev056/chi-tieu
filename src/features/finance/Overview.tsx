@@ -2,6 +2,7 @@ import type { Budget, Category, Transaction } from "./db";
 import { formatVND } from "./money";
 import { budgetTone, byNewest, summarize } from "./summary";
 import { BudgetRow, Bubble, cx, EmptyMonth, Hero, TxRow } from "./ui";
+import { useT } from "./i18n";
 import s from "./finance.module.css";
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default function Overview({ month, txs, budgets, catMap, onEdit, onAdd, goTransactions, goBudgets }: Props) {
+  const t = useT();
   if (txs.length === 0) return <EmptyMonth month={month} onAdd={onAdd} />;
 
   const { income, expense, byCat, totalLimit } = summarize(txs, budgets);
@@ -33,22 +35,22 @@ export default function Overview({ month, txs, budgets, catMap, onEdit, onAdd, g
       <Hero month={month} expense={expense} totalLimit={totalLimit}>
         {totalLimit <= 0 && (
           <button type="button" className={cx(s.btn, s.btnGhost, s.btnSm)} onClick={goBudgets}>
-            Đặt ngân sách
+            {t.setBudget}
           </button>
         )}
       </Hero>
 
       <section className={cx(s.card, s.stats)}>
         <div>
-          <span className={s.statL}>Thu</span>
+          <span className={s.statL}>{t.income}</span>
           <span className={cx(s.statV, s.in)}>{formatVND(income)}</span>
         </div>
         <div>
-          <span className={s.statL}>Chi</span>
+          <span className={s.statL}>{t.expense}</span>
           <span className={s.statV}>{formatVND(expense)}</span>
         </div>
         <div>
-          <span className={s.statL}>Dư</span>
+          <span className={s.statL}>{t.balance}</span>
           <span className={cx(s.statV, balance < 0 && s.out)}>
             {`${balance < 0 ? "−" : "+"}${formatVND(Math.abs(balance))}`}
           </span>
@@ -58,9 +60,9 @@ export default function Overview({ month, txs, budgets, catMap, onEdit, onAdd, g
       {(budgetRows.length > 0 || spendRows.length > 0) && (
         <>
           <div className={s.secHead}>
-            <h2 className={s.secTitle}>Theo danh mục</h2>
+            <h2 className={s.secTitle}>{t.byCategory}</h2>
             <button type="button" className={s.link} onClick={goBudgets}>
-              Ngân sách
+              {t.budgets}
             </button>
           </div>
           <div className={s.list}>
@@ -74,13 +76,13 @@ export default function Overview({ month, txs, budgets, catMap, onEdit, onAdd, g
                   return (
                     <button key={id} type="button" className={s.catRow} onClick={goTransactions}>
                       <Bubble cat={cat} />
-                      <span className={s.rowName}>{cat?.name ?? "Không rõ"}</span>
+                      <span className={s.rowName}>{cat?.name ?? t.unknown}</span>
                       <span className={s.catRight}>{formatVND(value)}</span>
                       <div className={cx(s.bar, s.thin)}>
                         <i className={s[budgetTone(0)]} style={{ width: `${share * 100}%` }} />
                       </div>
                       <div className={s.catSub}>
-                        <span>{`${Math.round(share * 100)}% tổng chi`}</span>
+                        <span>{t.shareOfExpense(Math.round(share * 100))}</span>
                       </div>
                     </button>
                   );
@@ -90,14 +92,14 @@ export default function Overview({ month, txs, budgets, catMap, onEdit, onAdd, g
       )}
 
       <div className={s.secHead}>
-        <h2 className={s.secTitle}>Gần đây</h2>
+        <h2 className={s.secTitle}>{t.recent}</h2>
         <button type="button" className={s.link} onClick={goTransactions}>
-          Xem tất cả
+          {t.seeAll}
         </button>
       </div>
       <div className={s.list}>
-        {recent.map((t) => (
-          <TxRow key={t.id} tx={t} cat={catMap.get(t.categoryId)} onClick={() => onEdit(t)} />
+        {recent.map((tx) => (
+          <TxRow key={tx.id} tx={tx} cat={catMap.get(tx.categoryId)} onClick={() => onEdit(tx)} />
         ))}
       </div>
     </>

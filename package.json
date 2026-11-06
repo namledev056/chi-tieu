@@ -1,7 +1,7 @@
 {
   "name": "chi-tieu",
   "version": "1.0.0",
-  "description": "App quản lý chi tiêu cá nhân, dữ liệu lưu cục bộ (Next.js + IndexedDB)",
+  "description": "Local-first personal expense tracker with budgets and VietQR bill splitting (Next.js + IndexedDB)",
   "license": "MIT",
   "author": "nam.le",
   "repository": {

@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Chi tiêu",
     short_name: "Chi tiêu",
-    description: "Ghi chép thu chi, theo dõi ngân sách hàng tháng.",
+    description: "Ghi chép thu chi, theo dõi ngân sách hàng tháng. Track spending and monthly budgets.",
     start_url: "/",
     display: "standalone",
     orientation: "portrait",

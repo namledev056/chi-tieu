@@ -9,12 +9,13 @@ import { deleteTransaction, saveTransaction } from "./repo";
 import { CategoryIcon } from "./icons";
 import SplitSheet from "./Split";
 import { CloseButton, cx } from "./ui";
+import { useT } from "./i18n";
 import s from "./finance.module.css";
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "000", "0"];
-const MAX_DIGITS = 11; // tối đa 99.999.999.999 ₫
+const MAX_DIGITS = 11; // up to 99.999.999.999 ₫
 
-/** Số cột để hàng cuối không còn một ô đứng lẻ (9 mục: 5 + 4 thay vì 4 + 4 + 1). */
+/** Column count that avoids a lone item on the last row (9 items: 5 + 4 instead of 4 + 4 + 1). */
 const gridCols = (n: number) => [4, 5, 3].find((c) => n <= c || n % c !== 1) ?? 4;
 
 export default function TxSheet({
@@ -28,6 +29,7 @@ export default function TxSheet({
   defaultDate: string;
   onClose: () => void;
 }) {
+  const t = useT();
   const [type, setType] = useState<TxType>(tx?.type ?? "expense");
   const [digits, setDigits] = useState(tx ? String(tx.amount) : "");
   const [categoryId, setCategoryId] = useState<number | undefined>(
@@ -45,7 +47,7 @@ export default function TxSheet({
   const amount = Number(digits || 0);
   const shown = digits ? formatAmountInput(digits) : "0";
 
-  // Thu nhỏ chữ số tới khi vừa khoảng trống bên phải nút ngày (40px → tối thiểu 18px).
+  // Shrink the digits until they fit beside the date button (40px down to 18px).
   useLayoutEffect(() => {
     const box = amountRef.current;
     const value = valueRef.current;
@@ -81,10 +83,10 @@ export default function TxSheet({
     onClose();
   }, [valid, busy, type, amount, categoryId, date, note, tx, onClose]);
 
-  // Bàn phím vật lý (máy tính): gõ số, Backspace, Enter để lưu, Esc để đóng.
+  // Physical keyboard (desktop): digits, Backspace, Enter to save, Esc to close.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (splitting) return; // sheet chia tiền đang mở, nó tự xử lý phím
+      if (splitting) return; // the split sheet is open and handles its own keys
       if (e.key === "Escape") return onClose();
       if ((e.target as HTMLElement).tagName === "INPUT") {
         if (e.key === "Enter") save();
@@ -98,13 +100,13 @@ export default function TxSheet({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose, press, save, splitting]);
 
-  const switchType = (t: TxType) => {
-    setType(t);
-    setCategoryId(categories.find((c) => c.type === t)?.id);
+  const switchType = (next: TxType) => {
+    setType(next);
+    setCategoryId(categories.find((c) => c.type === next)?.id);
   };
 
   const remove = async () => {
-    if (!tx || !window.confirm("Xóa giao dịch này?")) return;
+    if (!tx || !window.confirm(t.confirmDeleteTx)) return;
     await deleteTransaction(tx.id);
     onClose();
   };
@@ -122,20 +124,20 @@ export default function TxSheet({
   return (
     <>
       <div className={s.scrim} onClick={onClose} aria-hidden />
-      <div className={s.sheet} role="dialog" aria-modal="true" aria-label={tx ? "Sửa giao dịch" : "Thêm giao dịch"}>
+      <div className={s.sheet} role="dialog" aria-modal="true" aria-label={tx ? t.editTx : t.addTx}>
         <div className={s.grab} />
         <div className={s.sheetTop}>
           <div className={s.seg}>
-            {(["expense", "income"] as const).map((t) => (
-              <button key={t} type="button" aria-pressed={type === t} onClick={() => switchType(t)}>
-                {t === "expense" ? "Khoản chi" : "Khoản thu"}
+            {(["expense", "income"] as const).map((k) => (
+              <button key={k} type="button" aria-pressed={type === k} onClick={() => switchType(k)}>
+                {k === "expense" ? t.expenseTab : t.incomeTab}
               </button>
             ))}
           </div>
           <div className={s.topActions}>
             {tx && (
               <button type="button" className={s.textDanger} onClick={remove}>
-                Xóa
+                {t.delete}
               </button>
             )}
             <CloseButton onClick={onClose} />
@@ -145,7 +147,7 @@ export default function TxSheet({
         <div className={s.amountRow}>
           <button type="button" className={s.fieldBtn} onClick={openDate}>
             <Calendar aria-hidden />
-            <span className={s.dateLabel}>{shortDateLabel(date)}</span>
+            <span className={s.dateLabel}>{shortDateLabel(date, t)}</span>
             <input
               ref={dateRef}
               type="date"
@@ -153,14 +155,14 @@ export default function TxSheet({
               value={date}
               onChange={(e) => e.target.value && setDate(e.target.value)}
               tabIndex={-1}
-              aria-label={`Ngày: ${shortDateLabel(date)}`}
+              aria-label={t.dateAria(shortDateLabel(date, t))}
             />
           </button>
           <div
             className={cx(s.amount, type === "expense" ? s.out : s.in)}
             ref={amountRef}
             aria-live="polite"
-            aria-label="Số tiền"
+            aria-label={t.amount}
           >
             <span ref={valueRef} className={cx(s.amountValue, !digits && s.amountEmpty)}>
               {shown}
@@ -173,7 +175,7 @@ export default function TxSheet({
         <div
           className={s.catGrid}
           role="radiogroup"
-          aria-label="Danh mục"
+          aria-label={t.category}
           style={{ gridTemplateColumns: `repeat(${gridCols(visible.length)}, minmax(0, 1fr))` }}
         >
           {visible.map((c) => (
@@ -199,9 +201,9 @@ export default function TxSheet({
             className={s.input}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Ghi chú"
+            placeholder={t.note}
             maxLength={120}
-            aria-label="Ghi chú"
+            aria-label={t.note}
           />
         </div>
 
@@ -211,7 +213,7 @@ export default function TxSheet({
               {k}
             </button>
           ))}
-          <button type="button" onClick={() => press("back")} aria-label="Xóa một số">
+          <button type="button" onClick={() => press("back")} aria-label={t.backspace}>
             <Delete aria-hidden />
           </button>
         </div>
@@ -225,11 +227,11 @@ export default function TxSheet({
               onClick={() => setSplitting(true)}
             >
               <Users aria-hidden />
-              Chia tiền
+              {t.split}
             </button>
           )}
           <button type="button" className={s.btn} disabled={!valid || busy} onClick={save}>
-            {tx ? "Lưu thay đổi" : type === "expense" ? "Lưu khoản chi" : "Lưu khoản thu"}
+            {tx ? t.saveChanges : type === "expense" ? t.saveExpense : t.saveIncome}
           </button>
         </div>
       </div>

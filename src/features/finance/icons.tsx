@@ -49,8 +49,8 @@ import {
 } from "lucide-react";
 
 /**
- * Icon danh mục: lưu khóa (vd "utensils") trong DB, vẽ bằng SVG Lucide.
- * Thứ tự ở đây là thứ tự trong bảng chọn icon.
+ * Category icons: the DB stores a key (e.g. "utensils"), rendered as a Lucide SVG.
+ * Order here is the order in the icon picker. Labels live in i18n.tsx.
  */
 export const CATEGORY_ICONS: Record<string, LucideIcon> = {
   utensils: Utensils,
@@ -102,58 +102,9 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
 
 export const ICON_KEYS = Object.keys(CATEGORY_ICONS);
 
-/** Tên đọc cho trình đọc màn hình trong bảng chọn icon. */
-export const ICON_LABELS: Record<string, string> = {
-  utensils: "Ăn uống",
-  coffee: "Cà phê",
-  "shopping-cart": "Đi chợ",
-  bike: "Xe máy",
-  car: "Ô tô",
-  bus: "Xe buýt",
-  fuel: "Xăng",
-  plane: "Du lịch",
-  house: "Nhà",
-  lightbulb: "Điện",
-  zap: "Năng lượng",
-  wifi: "Internet",
-  smartphone: "Điện thoại",
-  receipt: "Hóa đơn",
-  "shopping-bag": "Mua sắm",
-  shirt: "Quần áo",
-  scissors: "Làm đẹp",
-  sparkles: "Chăm sóc",
-  clapperboard: "Phim ảnh",
-  gamepad: "Trò chơi",
-  music: "Âm nhạc",
-  dumbbell: "Thể thao",
-  pill: "Thuốc",
-  stethoscope: "Khám bệnh",
-  "book-open": "Sách",
-  "graduation-cap": "Học phí",
-  baby: "Con cái",
-  "paw-print": "Thú cưng",
-  users: "Gia đình",
-  heart: "Từ thiện",
-  gift: "Quà tặng",
-  wrench: "Sửa chữa",
-  laptop: "Công nghệ",
-  "credit-card": "Thẻ tín dụng",
-  landmark: "Ngân hàng",
-  package: "Khác",
-  briefcase: "Lương",
-  "trending-up": "Đầu tư",
-  store: "Kinh doanh",
-  banknote: "Tiền mặt",
-  coins: "Tiền lẻ",
-  "hand-coins": "Cho vay",
-  wallet: "Ví",
-  "piggy-bank": "Tiết kiệm",
-  tag: "Nhãn",
-};
-
 export const DEFAULT_ICON = { expense: "package", income: "piggy-bank" } as const;
 
-/** Emoji của bản cũ → khóa icon mới. Dùng khi nâng cấp DB. */
+/** Legacy emoji → new icon key. Used by the DB upgrade. */
 export const EMOJI_TO_ICON: Record<string, string> = {
   "🍜": "utensils",
   "🛵": "bike",

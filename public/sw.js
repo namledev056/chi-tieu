@@ -1,4 +1,4 @@
-// Service worker: cho phép cài app (PWA) và mở được khi không có mạng.
+// Service worker: makes the app installable (PWA) and usable offline.
 const CACHE = "chi-tieu-v1";
 
 self.addEventListener("install", (event) => {
@@ -21,7 +21,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Trang HTML: ưu tiên mạng để luôn có bản mới, mất mạng thì dùng bản đã lưu.
+  // HTML pages: network first for the latest version, cached copy when offline.
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -35,7 +35,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // JS/CSS/font/ảnh: dùng bản đã lưu, đồng thời cập nhật ngầm.
+  // JS/CSS/fonts/images: serve from cache while refreshing in the background.
   event.respondWith(
     caches.match(req).then((cached) => {
       const network = fetch(req)

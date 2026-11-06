@@ -1,15 +1,15 @@
 import { expect, type Page } from "@playwright/test";
 
-/** "45.000 ₫" — giống formatVND trong app. */
+/** "45.000 ₫", same as formatVND in the app. */
 export const vnd = (n: number) => `${new Intl.NumberFormat("vi-VN").format(n)} ₫`;
 
-/** Ký tự emoji (dùng để chắc chắn app không còn vẽ icon bằng emoji). */
+/** Emoji characters (to assert the app no longer draws icons with emoji). */
 export const EMOJI = /\p{Extended_Pictographic}/u;
 
 export const nav = (page: Page, label: "Tổng quan" | "Giao dịch" | "Ngân sách" | "Cài đặt") =>
   page.getByRole("navigation", { name: "Điều hướng" }).getByRole("button", { name: label, exact: true });
 
-/** Gõ số tiền bằng bàn phím số trên màn hình, như người dùng chạm. */
+/** Type an amount on the on-screen keypad, like a user tapping. */
 export async function typeAmount(page: Page, amount: number) {
   const sheet = page.getByRole("dialog");
   for (const d of String(amount)) {
@@ -32,14 +32,14 @@ export async function addTx(
   await expect(sheet).toBeHidden();
 }
 
-/** Các control nhìn thấy được có vùng chạm dưới 44px (tính cả phần mở rộng bằng ::before). */
+/** Visible controls with a touch target under 44px (including ::before extensions). */
 export async function smallTargets(page: Page) {
   return page.evaluate(() =>
     [...document.querySelectorAll<HTMLElement>("button, [role=radio], input:not([type=file]):not([type=date])")]
       .filter((el) => el.offsetParent !== null && !el.closest("[data-skip-target]"))
       .map((el) => {
         const r = el.getBoundingClientRect();
-        // Chip và ô màu mở rộng vùng chạm bằng ::before
+        // Chips and swatches extend their touch target with ::before
         const before = getComputedStyle(el, "::before");
         const extra = before.content !== "none" && before.position === "absolute" ? -parseFloat(before.top) * 2 || 0 : 0;
         return { label: el.getAttribute("aria-label") || el.textContent?.trim() || el.tagName, h: r.height + extra };

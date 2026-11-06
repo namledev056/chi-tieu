@@ -1,13 +1,18 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { LangProvider } from "./i18n";
 
-// IndexedDB chỉ có ở trình duyệt → tắt SSR cho app.
+// IndexedDB only exists in the browser, so the app skips SSR.
 const FinanceApp = dynamic(() => import("./FinanceApp"), {
   ssr: false,
-  loading: () => <div className="boot">Đang tải…</div>,
+  loading: () => <div className="boot" aria-busy="true">…</div>,
 });
 
 export default function FinanceLoader() {
-  return <FinanceApp />;
+  return (
+    <LangProvider>
+      <FinanceApp />
+    </LangProvider>
+  );
 }

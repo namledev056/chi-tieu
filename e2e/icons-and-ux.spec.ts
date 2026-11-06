@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { addTx, EMOJI, nav, smallTargets } from "./helpers";
 
-test("icon danh mục là SVG, không còn emoji ở bất kỳ màn nào", async ({ page }) => {
+test("category icons are SVG, with no emoji on any screen", async ({ page }) => {
   await page.goto("/");
   await addTx(page, { amount: 45000, category: "Ăn uống" });
 
@@ -19,7 +19,7 @@ test("icon danh mục là SVG, không còn emoji ở bất kỳ màn nào", asyn
   }
 });
 
-test("thêm danh mục mới với icon và màu chọn từ bảng", async ({ page }) => {
+test("add a new category with an icon and color from the pickers", async ({ page }) => {
   await page.goto("/");
   await nav(page, "Cài đặt").click();
   await page.getByRole("button", { name: "Thêm", exact: true }).first().click();
@@ -39,8 +39,8 @@ test("thêm danh mục mới với icon và màu chọn từ bảng", async ({ p
   await expect(radio.locator("svg")).toHaveCount(1);
 });
 
-test("dữ liệu bản cũ (icon emoji) được tự chuyển sang icon SVG", async ({ page }) => {
-  // Tạo DB đúng như bản v1 (Dexie version 1 = IndexedDB version 10) trước khi app mở.
+test("legacy data (emoji icons) is migrated to SVG icons", async ({ page }) => {
+  // Create the DB exactly as v1 did (Dexie version 1 = IndexedDB version 10) before the app opens.
   await page.goto("/manifest.webmanifest");
   await page.evaluate(
     () =>
@@ -88,11 +88,11 @@ test("dữ liệu bản cũ (icon emoji) được tự chuyển sang icon SVG", 
         };
       }),
   );
-  // Emoji lạ (🐶) rơi về icon mặc định của loại chi.
+  // An unknown emoji (🐶) falls back to the default expense icon.
   expect(icons).toEqual(["utensils", "package", "briefcase"]);
 });
 
-test("mọi nút đều có vùng chạm tối thiểu 44px", async ({ page }) => {
+test("every button has at least a 44px touch target", async ({ page }) => {
   await page.goto("/");
   await addTx(page, { amount: 45000, category: "Ăn uống" });
 
@@ -109,7 +109,7 @@ test("mọi nút đều có vùng chạm tối thiểu 44px", async ({ page }) =
   expect(await smallTargets(page), "sheet thêm giao dịch").toEqual([]);
 });
 
-test("vòng focus hiện khi dùng bàn phím", async ({ page }) => {
+test("focus ring shows for keyboard use", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("button", { name: "Chọn tháng" })).toBeVisible();
   await page.keyboard.press("Tab");

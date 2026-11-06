@@ -2,10 +2,11 @@ import { db, type Category, type Transaction, type TxType } from "./db";
 import { DEFAULT_ICON } from "./icons";
 import { parseAmount } from "./money";
 import type { Payee } from "./vietqr";
+import { DICTS, type Lang } from "./i18n";
 
 export type TxInput = Omit<Transaction, "id" | "createdAt">;
 
-/* ---------- Giao dịch ---------- */
+/* ---------- Transactions ---------- */
 
 export async function saveTransaction(input: TxInput, id?: number) {
   if (id) await db.transactions.update(id, input);
@@ -20,7 +21,7 @@ export const monthTransactions = (month: string) =>
     .between(`${month}-01`, `${month}-31`, true, true)
     .toArray();
 
-/* ---------- Danh mục ---------- */
+/* ---------- Categories ---------- */
 
 export async function listCategories() {
   const all = await db.categories.toArray();
@@ -36,15 +37,18 @@ export async function addCategory(input: Omit<Category, "id" | "order">) {
 export const updateCategory = (id: number, patch: Partial<Omit<Category, "id">>) =>
   db.categories.update(id, patch);
 
-/** Xóa danh mục, chuyển giao dịch của nó sang danh mục "Khác" cùng loại. */
+/** Thrown by deleteCategory when it would remove the last category of a type. */
+export class LastCategoryError extends Error {}
+
+/** Delete a category, moving its transactions to an "Other" category of the same type. */
 export async function deleteCategory(cat: Category) {
   const others = (await db.categories.where("type").equals(cat.type).toArray()).filter(
     (c) => c.id !== cat.id,
   );
   if (!others.length) {
-    throw new Error("Cần giữ lại ít nhất một danh mục cho mỗi loại.");
+    throw new LastCategoryError();
   }
-  const fallback = others.find((c) => /khác/i.test(c.name)) ?? others[0];
+  const fallback = others.find((c) => /khác|other/i.test(c.name)) ?? others[0];
   await db.transaction("rw", db.transactions, db.categories, db.budgets, async () => {
     await db.transactions.where("categoryId").equals(cat.id).modify({ categoryId: fallback.id });
     await db.budgets.where("categoryId").equals(cat.id).delete();
@@ -53,7 +57,7 @@ export async function deleteCategory(cat: Category) {
   return fallback;
 }
 
-/* ---------- Ngân sách ---------- */
+/* ---------- Budgets ---------- */
 
 export const monthBudgets = (month: string) =>
   db.budgets.where("month").equals(month).toArray();
@@ -79,7 +83,7 @@ export async function copyBudgets(fromMonth: string, toMonth: string) {
   return prev.length;
 }
 
-/* ---------- Tài khoản nhận tiền (chia tiền) ---------- */
+/* ---------- Receiving account (bill splitting) ---------- */
 
 export const getPayee = async () =>
   ((await db.settings.get("payee"))?.value as Payee | undefined) ?? null;
@@ -88,7 +92,7 @@ export const savePayee = (payee: Payee) => db.settings.put({ key: "payee", value
 
 export const clearPayee = () => db.settings.delete("payee");
 
-/* ---------- Dữ liệu ---------- */
+/* ---------- Data ---------- */
 
 export async function wipeData() {
   await db.transaction("rw", db.transactions, db.budgets, async () => {
@@ -97,26 +101,32 @@ export async function wipeData() {
   });
 }
 
-const CSV_HEADER = "ngay,loai,so_tien,danh_muc,ghi_chu";
+/** CSV columns are date,type,amount,category,note. Headers and type words follow the language; import accepts both. */
+const CSV_FORMAT: Record<Lang, { header: string; income: string; expense: string }> = {
+  vi: { header: "ngay,loai,so_tien,danh_muc,ghi_chu", income: "thu", expense: "chi" },
+  en: { header: "date,type,amount,category,note", income: "income", expense: "expense" },
+};
+export const csvHeader = (lang: Lang) => CSV_FORMAT[lang].header;
 
 function csvEscape(v: string | number) {
   const s = String(v);
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-export async function exportCSV(): Promise<string> {
+export async function exportCSV(lang: Lang): Promise<string> {
+  const f = CSV_FORMAT[lang];
   const [txs, cats] = await Promise.all([
     db.transactions.orderBy("date").toArray(),
     db.categories.toArray(),
   ]);
   const names = new Map(cats.map((c) => [c.id, c.name]));
   const lines = txs.map((t) =>
-    [t.date, t.type === "income" ? "thu" : "chi", t.amount, names.get(t.categoryId) ?? "", t.note]
+    [t.date, t.type === "income" ? f.income : f.expense, t.amount, names.get(t.categoryId) ?? "", t.note]
       .map(csvEscape)
       .join(","),
   );
-  // BOM để Excel đọc đúng tiếng Việt
-  return "﻿" + [CSV_HEADER, ...lines].join("\r\n");
+  // BOM so Excel reads UTF-8 (Vietnamese) correctly
+  return "﻿" + [f.header, ...lines].join("\r\n");
 }
 
 export function parseCSV(text: string): string[][] {
@@ -158,16 +168,18 @@ function parseType(v: string | undefined): TxType | null {
   return null;
 }
 
-export async function importCSV(text: string) {
+export async function importCSV(text: string, lang: Lang) {
+  const t = DICTS[lang];
   const rows = parseCSV(text.replace(/^﻿/, "")).filter((r) => r.some((c) => c.trim()));
-  const body = rows[0]?.[0]?.trim().toLowerCase() === "ngay" ? rows.slice(1) : rows;
+  const first = rows[0]?.[0]?.trim().toLowerCase();
+  const body = first === "ngay" || first === "date" ? rows.slice(1) : rows;
   let added = 0;
   let skipped = 0;
 
   await db.transaction("rw", db.transactions, db.categories, async () => {
     const cats = await db.categories.toArray();
     const resolveCategory = async (rawName: string, type: TxType) => {
-      const name = rawName.trim() || (type === "income" ? "Thu khác" : "Khác");
+      const name = rawName.trim() || (type === "income" ? t.otherIncome : t.otherExpense);
       const found = cats.find((c) => c.type === type && c.name.toLowerCase() === name.toLowerCase());
       if (found) return found.id;
       const cat: Omit<Category, "id"> = {

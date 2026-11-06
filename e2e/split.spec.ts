@@ -5,13 +5,13 @@ import QRCode from "qrcode";
 import { buildVietQR, parseVietQR } from "../src/features/finance/vietqr";
 import { nav, smallTargets, typeAmount, vnd } from "./helpers";
 
-/** Giải mã ảnh QR (data URL PNG) mà app vẽ ra → chuỗi VietQR bên trong. */
+/** Decode the QR image (PNG data URL) the app renders → the VietQR string inside. */
 function decodeDataUrl(dataUrl: string) {
   const png = PNG.sync.read(Buffer.from(dataUrl.split(",")[1], "base64"));
   return jsQR(new Uint8ClampedArray(png.data), png.width, png.height)?.data ?? null;
 }
 
-/** Tách giá trị một trường EMV cấp 1 (vd "54" = số tiền). */
+/** Extract a top-level EMV field value (e.g. "54" = amount). */
 function field(payload: string, id: string) {
   let i = 0;
   while (i < payload.length) {
@@ -36,10 +36,10 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/");
 });
 
-test("chia tiền: nhập tài khoản, đổi số người, QR chứa đúng số tiền", async ({ page }) => {
+test("split bill: enter account, change people count, QR has the right amount", async ({ page }) => {
   const split = await openSplit(page, 900000, "Ăn tối");
 
-  // Chưa có tài khoản → hiện form nhập ngay trong sheet
+  // No account yet → the form appears inside the sheet
   await split.getByLabel("Ngân hàng", { exact: true }).selectOption({ label: "Vietcombank" });
   await split.getByLabel("Số tài khoản").fill("0011001234567");
   await split.getByLabel(/Tên chủ tài khoản/).fill("Nguyen Van A");
@@ -56,7 +56,7 @@ test("chia tiền: nhập tài khoản, đổi số người, QR chứa đúng s
 
   const img = split.getByRole("img", { name: `Mã QR chuyển ${vnd(225000)}` });
   await expect(img).toBeVisible();
-  // Chờ ảnh QR cập nhật theo số người mới rồi giải mã chính ảnh đó.
+  // Wait for the QR to update for the new people count, then decode that image.
   await expect
     .poll(async () => decodeDataUrl((await img.getAttribute("src"))!))
     .toContain("5406225000");
@@ -65,7 +65,7 @@ test("chia tiền: nhập tài khoản, đổi số người, QR chứa đúng s
   expect(field(payload, "54")).toBe("225000");
   expect(field(payload, "62")).toBe("0816Chia tien An toi");
 
-  // Không cho xuống dưới 2 người
+  // Can't go below 2 people
   for (let i = 0; i < 5; i++) {
     const minus = split.getByRole("button", { name: "Bớt một người" });
     if (await minus.isDisabled()) break;
@@ -76,18 +76,18 @@ test("chia tiền: nhập tài khoản, đổi số người, QR chứa đúng s
 
   expect(await smallTargets(page), "sheet chia tiền").toEqual([]);
 
-  // Lưu ảnh để gửi
+  // Save the image to send
   const download = page.waitForEvent("download");
   await split.getByRole("button", { name: "Lưu ảnh" }).click();
   expect((await download).suggestedFilename()).toBe("chia-tien-450000.png");
 
-  // Esc đóng sheet chia tiền nhưng giữ sheet giao dịch
+  // Esc closes the split sheet but keeps the transaction sheet
   await page.keyboard.press("Escape");
   await expect(split).toBeHidden();
   await expect(page.getByRole("dialog", { name: "Thêm giao dịch" })).toBeVisible();
 });
 
-test("tải ảnh mã QR ngân hàng trong Cài đặt để tự điền tài khoản", async ({ page }) => {
+test("uploading a bank QR image in Settings fills in the account", async ({ page }) => {
   const qr = await QRCode.toBuffer(buildVietQR({ bin: "970407", account: "19031234567890", name: "" }), {
     width: 500,
     margin: 4,
@@ -103,13 +103,13 @@ test("tải ảnh mã QR ngân hàng trong Cài đặt để tự điền tài k
 
   await expect(page.getByRole("button", { name: /Techcombank · 19031234567890/ })).toBeVisible();
 
-  // Dùng ngay khi chia tiền, không phải nhập lại
+  // Used right away when splitting, no re-entry needed
   const split = await openSplit(page, 300000, "Cafe");
   await expect(split).toContainText("19031234567890");
   await expect(split.getByTestId("split-each")).toHaveText(vnd(150000));
 });
 
-test("ảnh không phải mã QR ngân hàng thì báo lỗi rõ ràng", async ({ page }) => {
+test("a non-bank-QR image shows a clear error", async ({ page }) => {
   const notBank = await QRCode.toBuffer("https://example.com", { width: 400 });
   await nav(page, "Cài đặt").click();
   await page.getByRole("button", { name: "Thêm tài khoản" }).click();
@@ -118,7 +118,7 @@ test("ảnh không phải mã QR ngân hàng thì báo lỗi rõ ràng", async (
   await expect(page.getByRole("button", { name: "Lưu tài khoản" })).toBeDisabled();
 });
 
-test("nút Chia tiền chỉ có ở khoản chi và cần nhập số tiền trước", async ({ page }) => {
+test("Split bill only appears for expenses and needs an amount first", async ({ page }) => {
   await page.getByRole("button", { name: "Thêm giao dịch" }).click();
   const tx = page.getByRole("dialog", { name: "Thêm giao dịch" });
   await expect(tx.getByRole("button", { name: "Chia tiền" })).toBeDisabled();

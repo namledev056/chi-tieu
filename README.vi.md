@@ -1,5 +1,7 @@
 # Chi tiêu
 
+[English](README.md) · **Tiếng Việt**
+
 App quản lý chi tiêu cá nhân, chạy hoàn toàn trên trình duyệt. Dữ liệu chỉ lưu trên máy của bạn (IndexedDB), không có server, không cần tài khoản.
 
 ## Tính năng
@@ -9,6 +11,7 @@ App quản lý chi tiêu cá nhân, chạy hoàn toàn trên trình duyệt. D�
 - **Ngân sách**: đặt hạn mức theo danh mục, cộng thêm vào hạn mức đang có.
 - **Chia tiền**: chia hoá đơn cho nhiều người và tạo mã **VietQR** để chuyển khoản; quét mã QR ngân hàng để lấy thông tin người nhận.
 - **Sao lưu**: xuất/nhập CSV.
+- **Song ngữ**: tiếng Việt và tiếng Anh, đổi trong Cài đặt.
 - **PWA**: cài lên màn hình chính, dùng được khi offline.
 
 ## Quyền riêng tư
@@ -50,7 +53,7 @@ npm run test:e2e
 
 ```
 src/app/                 Next.js app router, manifest, đăng ký service worker
-src/features/finance/    Toàn bộ tính năng: UI, IndexedDB (db.ts, repo.ts), VietQR (vietqr.ts)
+src/features/finance/    Toàn bộ tính năng: UI, IndexedDB (db.ts, repo.ts), VietQR (vietqr.ts), ngôn ngữ (i18n.tsx)
 public/sw.js             Service worker cho chế độ offline
 e2e/                     Playwright test
 ```

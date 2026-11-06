@@ -12,12 +12,12 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     locale: "vi-VN",
     timezoneId: "Asia/Ho_Chi_Minh",
-    // Service worker cache không được làm lệch kết quả giữa các lần chạy.
+    // Keep the service worker cache from skewing results between runs.
     serviceWorkers: "block",
     trace: "retain-on-failure",
   },
   projects: [
-    // Màn hình điện thoại Android, giống máy người dùng thật.
+    // Android phone viewport, like a real user's device.
     { name: "android", use: { ...devices["Pixel 7"] } },
   ],
   webServer: {

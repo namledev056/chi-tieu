@@ -5,32 +5,35 @@ import { Download, Landmark, Plus, Upload } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import type { Category, TxType } from "./db";
 import { today } from "./dates";
-import { addCategory, clearPayee, deleteCategory, exportCSV, getPayee, importCSV, updateCategory, wipeData } from "./repo";
+import {
+  addCategory,
+  clearPayee,
+  csvHeader,
+  deleteCategory,
+  exportCSV,
+  getPayee,
+  importCSV,
+  LastCategoryError,
+  updateCategory,
+  wipeData,
+} from "./repo";
 import { PayeeEditor } from "./Split";
 import { bankName } from "./vietqr";
-import { CategoryIcon, DEFAULT_ICON, ICON_KEYS, ICON_LABELS } from "./icons";
+import { CategoryIcon, DEFAULT_ICON, ICON_KEYS } from "./icons";
+import { LANGS, useI18n, useT } from "./i18n";
 import { Bubble, cx } from "./ui";
 import s from "./finance.module.css";
 
-const COLORS: [string, string][] = [
-  ["#e8590c", "Cam"],
-  ["#1c7ed6", "Xanh dương"],
-  ["#7048e8", "Tím"],
-  ["#f59f00", "Vàng"],
-  ["#d6336c", "Hồng"],
-  ["#0ca678", "Xanh ngọc"],
-  ["#e03131", "Đỏ"],
-  ["#3b5bdb", "Chàm"],
-  ["#2f9e44", "Xanh lá"],
-  ["#868e96", "Xám"],
-];
+/** Swatch colors; their names are t.colors, in the same order. */
+const COLORS = ["#e8590c", "#1c7ed6", "#7048e8", "#f59f00", "#d6336c", "#0ca678", "#e03131", "#3b5bdb", "#2f9e44", "#868e96"];
 
 export default function Settings({ categories }: { categories: Category[] }) {
+  const { lang, t, setLang } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState("");
 
   const doExport = async () => {
-    const url = URL.createObjectURL(new Blob([await exportCSV()], { type: "text/csv;charset=utf-8" }));
+    const url = URL.createObjectURL(new Blob([await exportCSV(lang)], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
     a.download = `chi-tieu-${today()}.csv`;
@@ -40,42 +43,53 @@ export default function Settings({ categories }: { categories: Category[] }) {
 
   const doImport = async (file: File) => {
     try {
-      const { added, skipped } = await importCSV(await file.text());
-      setMsg(`Đã nhập ${added} giao dịch${skipped ? `, bỏ qua ${skipped} dòng lỗi` : ""}.`);
+      const { added, skipped } = await importCSV(await file.text(), lang);
+      setMsg(t.imported(added, skipped));
     } catch {
-      setMsg("Không đọc được file CSV.");
+      setMsg(t.csvError);
     }
   };
 
   const doWipe = async () => {
-    if (!window.confirm("Xóa toàn bộ giao dịch và ngân sách? Không thể hoàn tác.")) return;
+    if (!window.confirm(t.confirmWipe)) return;
     await wipeData();
-    setMsg("Đã xóa toàn bộ dữ liệu.");
+    setMsg(t.wiped);
   };
 
   return (
     <>
+      <div className={s.secHead}>
+        <h2 className={s.secTitle}>{t.language}</h2>
+      </div>
+      <div className={cx(s.seg, s.langSeg)} role="group" aria-label={t.language}>
+        {LANGS.map((l) => (
+          <button key={l.id} type="button" lang={l.id} aria-pressed={lang === l.id} onClick={() => setLang(l.id)}>
+            {l.label}
+          </button>
+        ))}
+      </div>
+
       <PayeeSection />
       {(["expense", "income"] as const).map((type) => (
         <CategorySection key={type} type={type} categories={categories.filter((c) => c.type === type)} />
       ))}
 
       <div className={s.secHead}>
-        <h2 className={s.secTitle}>Dữ liệu</h2>
+        <h2 className={s.secTitle}>{t.data}</h2>
       </div>
       <section className={s.card}>
-        <p className={s.note}>Dữ liệu chỉ lưu trên trình duyệt này. Hãy xuất CSV định kỳ để sao lưu.</p>
+        <p className={s.note}>{t.dataNote}</p>
         <div className={cx(s.actions, s.mt)}>
           <button type="button" className={cx(s.btn, s.btnGhost, s.btnSm)} onClick={doExport}>
             <Download aria-hidden />
-            Xuất CSV
+            {t.exportCsv}
           </button>
           <button type="button" className={cx(s.btn, s.btnGhost, s.btnSm)} onClick={() => fileRef.current?.click()}>
             <Upload aria-hidden />
-            Nhập CSV
+            {t.importCsv}
           </button>
           <button type="button" className={cx(s.btn, s.btnDanger, s.btnSm)} onClick={doWipe}>
-            Xóa dữ liệu
+            {t.wipe}
           </button>
         </div>
         <input
@@ -95,8 +109,7 @@ export default function Settings({ categories }: { categories: Category[] }) {
           </p>
         )}
         <p className={cx(s.hint, s.mt)}>
-          Định dạng CSV: <code>ngay,loai,so_tien,danh_muc,ghi_chu</code>, ví dụ{" "}
-          <code>2026-11-04,chi,45000,Ăn uống,Phở</code>
+          {t.csvFormat} <code>{csvHeader(lang)}</code>, {t.csvExample} <code>{t.csvSample}</code>
         </p>
       </section>
     </>
@@ -104,20 +117,21 @@ export default function Settings({ categories }: { categories: Category[] }) {
 }
 
 function PayeeSection() {
+  const t = useT();
   const payee = useLiveQuery(getPayee);
   const [editing, setEditing] = useState(false);
   if (payee === undefined) return null;
   return (
     <>
       <div className={s.secHead}>
-        <h2 className={s.secTitle}>Tài khoản nhận tiền</h2>
+        <h2 className={s.secTitle}>{t.payeeTitle}</h2>
         {payee && !editing && (
           <button
             type="button"
             className={cx(s.link, s.textDangerLink)}
-            onClick={() => window.confirm("Xóa tài khoản nhận tiền?") && clearPayee()}
+            onClick={() => window.confirm(t.confirmDeletePayee) && clearPayee()}
           >
-            Xóa
+            {t.delete}
           </button>
         )}
       </div>
@@ -125,10 +139,10 @@ function PayeeSection() {
         <section className={s.card}>
           {!payee && !editing ? (
             <>
-              <p className={s.note}>Thêm tài khoản ngân hàng để khi chia tiền, app tạo mã QR có sẵn số tiền cho từng người.</p>
+              <p className={s.note}>{t.payeeIntro}</p>
               <button type="button" className={cx(s.btn, s.btnGhost, s.btnSm, s.mt)} onClick={() => setEditing(true)}>
                 <Plus aria-hidden />
-                Thêm tài khoản
+                {t.addAccount}
               </button>
             </>
           ) : (
@@ -142,10 +156,10 @@ function PayeeSection() {
               <Landmark />
             </span>
             <span className={s.rowMain}>
-              <span className={s.rowName}>{`${bankName(payee.bin)} · ${payee.account}`}</span>
+              <span className={s.rowName}>{`${bankName(payee.bin, t)} · ${payee.account}`}</span>
               {payee.name && <span className={s.rowSub}>{payee.name}</span>}
             </span>
-            <span className={s.link}>Sửa</span>
+            <span className={s.link}>{t.edit}</span>
           </button>
         </div>
       )}
@@ -154,14 +168,15 @@ function PayeeSection() {
 }
 
 function CategorySection({ type, categories }: { type: TxType; categories: Category[] }) {
+  const t = useT();
   const [editing, setEditing] = useState<number | "new" | null>(null);
   return (
     <>
       <div className={s.secHead}>
-        <h2 className={s.secTitle}>{type === "expense" ? "Danh mục chi" : "Danh mục thu"}</h2>
+        <h2 className={s.secTitle}>{type === "expense" ? t.expenseCategories : t.incomeCategories}</h2>
         <button type="button" className={s.link} onClick={() => setEditing("new")}>
           <Plus aria-hidden style={{ width: 16, height: 16 }} />
-          Thêm
+          {t.add}
         </button>
       </div>
       <div className={s.list}>
@@ -175,7 +190,7 @@ function CategorySection({ type, categories }: { type: TxType; categories: Categ
               <span className={s.rowMain}>
                 <span className={s.rowName}>{c.name}</span>
               </span>
-              <span className={s.link}>Sửa</span>
+              <span className={s.link}>{t.edit}</span>
             </button>
           ),
         )}
@@ -185,9 +200,10 @@ function CategorySection({ type, categories }: { type: TxType; categories: Categ
 }
 
 function CategoryEditor({ type, cat, onDone }: { type: TxType; cat?: Category; onDone: () => void }) {
+  const t = useT();
   const [name, setName] = useState(cat?.name ?? "");
   const [icon, setIcon] = useState<string>(cat?.icon ?? DEFAULT_ICON[type]);
-  const [color, setColor] = useState(cat?.color ?? COLORS[0][0]);
+  const [color, setColor] = useState(cat?.color ?? COLORS[0]);
   const [error, setError] = useState("");
 
   const save = async (e: React.FormEvent) => {
@@ -201,12 +217,12 @@ function CategoryEditor({ type, cat, onDone }: { type: TxType; cat?: Category; o
   };
 
   const remove = async () => {
-    if (!cat || !window.confirm(`Xóa "${cat.name}"? Các giao dịch sẽ chuyển sang danh mục Khác.`)) return;
+    if (!cat || !window.confirm(t.confirmDeleteCat(cat.name))) return;
     try {
       await deleteCategory(cat);
       onDone();
     } catch (err) {
-      setError((err as Error).message);
+      setError(err instanceof LastCategoryError ? t.lastCategoryError : (err as Error).message);
     }
   };
 
@@ -218,20 +234,20 @@ function CategoryEditor({ type, cat, onDone }: { type: TxType; cat?: Category; o
           className={s.input}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Tên danh mục"
-          aria-label="Tên danh mục"
+          placeholder={t.categoryName}
+          aria-label={t.categoryName}
           maxLength={30}
           autoFocus
         />
       </div>
-      <div className={s.iconGrid} role="radiogroup" aria-label="Biểu tượng">
+      <div className={s.iconGrid} role="radiogroup" aria-label={t.icon}>
         {ICON_KEYS.map((k) => (
           <button
             key={k}
             type="button"
             role="radio"
             aria-checked={icon === k}
-            aria-label={ICON_LABELS[k]}
+            aria-label={t.icons[k]}
             className={s.iconPick}
             onClick={() => setIcon(k)}
           >
@@ -239,14 +255,14 @@ function CategoryEditor({ type, cat, onDone }: { type: TxType; cat?: Category; o
           </button>
         ))}
       </div>
-      <div className={s.swatches} role="radiogroup" aria-label="Màu">
-        {COLORS.map(([c, label]) => (
+      <div className={s.swatches} role="radiogroup" aria-label={t.color}>
+        {COLORS.map((c, i) => (
           <button
             key={c}
             type="button"
             role="radio"
             aria-checked={color === c}
-            aria-label={label}
+            aria-label={t.colors[i]}
             className={s.swatch}
             style={{ background: c }}
             onClick={() => setColor(c)}
@@ -257,14 +273,14 @@ function CategoryEditor({ type, cat, onDone }: { type: TxType; cat?: Category; o
       <div className={s.actions}>
         {cat && (
           <button type="button" className={cx(s.btn, s.btnDanger, s.btnSm)} onClick={remove}>
-            Xóa
+            {t.delete}
           </button>
         )}
         <button type="button" className={cx(s.btn, s.btnGhost, s.btnSm)} onClick={onDone}>
-          Hủy
+          {t.cancel}
         </button>
         <button type="submit" className={cx(s.btn, s.btnSm)} disabled={!name.trim()}>
-          Lưu
+          {t.save}
         </button>
       </div>
     </form>

@@ -11,7 +11,7 @@ const font = Be_Vietnam_Pro({
 
 export const metadata: Metadata = {
   title: "Chi tiêu",
-  description: "Ghi chép thu chi, theo dõi ngân sách hàng tháng.",
+  description: "Ghi chép thu chi, theo dõi ngân sách hàng tháng. Track spending and monthly budgets.",
   applicationName: "Chi tiêu",
   appleWebApp: {
     capable: true,

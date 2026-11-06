@@ -7,6 +7,7 @@ import { formatAmountInput, formatVND, parseAmount } from "./money";
 import { copyBudgets, setBudget } from "./repo";
 import { summarize } from "./summary";
 import { BudgetRow, Bubble, cx, Hero } from "./ui";
+import { useT } from "./i18n";
 import s from "./finance.module.css";
 
 export default function Budgets({
@@ -22,6 +23,7 @@ export default function Budgets({
   budgets: Budget[];
   prevBudgetCount: number;
 }) {
+  const t = useT();
   const [editing, setEditing] = useState<number | null>(null);
   const { expense, byCat, totalLimit } = summarize(txs, budgets);
   const catMap = new Map(categories.map((c) => [c.id, c]));
@@ -53,7 +55,7 @@ export default function Budgets({
             className={cx(s.btn, s.btnGhost, s.btnSm)}
             onClick={() => copyBudgets(shiftMonth(month, -1), month)}
           >
-            Chép ngân sách tháng trước ({prevBudgetCount} mục)
+            {t.copyBudgets(prevBudgetCount)}
           </button>
         )}
       </Hero>
@@ -61,8 +63,8 @@ export default function Budgets({
       {rows.length > 0 && (
         <>
           <div className={s.secHead}>
-            <h2 className={s.secTitle}>Theo danh mục</h2>
-            <span className={s.secHint}>Sắp xếp theo % đã dùng</span>
+            <h2 className={s.secTitle}>{t.byCategory}</h2>
+            <span className={s.secHint}>{t.sortedByUsage}</span>
           </div>
           <div className={s.list}>
             {rows.map(({ b, spent }) => {
@@ -80,7 +82,7 @@ export default function Budgets({
       {unset.length > 0 && (
         <>
           <div className={s.secHead}>
-            <h2 className={s.secTitle}>Chưa đặt hạn mức</h2>
+            <h2 className={s.secTitle}>{t.noLimit}</h2>
           </div>
           <div className={s.list}>
             {unset.map((c) =>
@@ -92,7 +94,7 @@ export default function Budgets({
                   <span className={s.rowMain}>
                     <span className={s.rowName}>{c.name}</span>
                   </span>
-                  <span className={s.link}>Đặt</span>
+                  <span className={s.link}>{t.set}</span>
                 </button>
               ),
             )}
@@ -112,7 +114,8 @@ function LimitEditor({
   limit: number;
   onDone: (value: number | null) => void;
 }) {
-  // Đã có hạn mức thì mặc định là cộng thêm; chưa có thì nhập mức mới.
+  const t = useT();
+  // With an existing limit, default to adding on top; otherwise enter a new limit.
   const [mode, setMode] = useState<"add" | "set">(limit > 0 ? "add" : "set");
   const [draft, setDraft] = useState("");
   const value = parseAmount(draft);
@@ -135,29 +138,29 @@ function LimitEditor({
       <input
         className={cx(s.input, s.inputSm)}
         inputMode="numeric"
-        placeholder={mode === "add" ? "+ Cộng thêm ₫" : "Hạn mức ₫"}
+        placeholder={mode === "add" ? t.addToLimit : t.limitPlaceholder}
         value={mode === "add" && draft ? `+${draft}` : draft}
         onChange={(e) => setDraft(formatAmountInput(e.target.value))}
         onKeyDown={(e) => e.key === "Escape" && onDone(null)}
-        aria-label={mode === "add" ? `Cộng thêm vào hạn mức ${cat.name}` : `Hạn mức ${cat.name}`}
+        aria-label={mode === "add" ? t.addToLimitAria(cat.name) : t.limitAria(cat.name)}
         autoFocus
       />
       {limit > 0 && (
         <button type="button" className={s.textDanger} onClick={() => onDone(0)}>
-          Bỏ
+          {t.remove}
         </button>
       )}
       <button type="submit" className={cx(s.btn, s.btnSm)}>
-        Lưu
+        {t.save}
       </button>
       {limit > 0 && (
         <div className={s.editHint}>
           <span>
-            Hiện tại {formatVND(limit)}
+            {t.current} {formatVND(limit)}
             {mode === "add" && value > 0 && <> → <b>{formatVND(next)}</b></>}
           </span>
           <button type="button" className={s.link} onClick={switchMode}>
-            {mode === "add" ? "Nhập mức mới" : "Cộng thêm"}
+            {mode === "add" ? t.newLimit : t.addMore}
           </button>
         </div>
       )}

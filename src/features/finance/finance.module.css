@@ -1,4 +1,4 @@
-/* Bố cục theo wireframe phương án A (Còn lại trước). Token nền/chữ/viền ở src/app/globals.css. */
+/* Layout follows wireframe option A (remaining budget first). Background/text/border tokens live in src/app/globals.css. */
 .app {
   --primary: var(--accent);
   --on-primary: var(--on-accent);
@@ -26,7 +26,7 @@
   }
 }
 
-/* :where() giữ độ ưu tiên thấp, để class của từng control (cỡ chữ, màu) thắng. */
+/* :where() keeps specificity low so each control's own classes (font size, color) win. */
 :where(.app) button,
 :where(.app) input {
   font: inherit;
@@ -39,7 +39,7 @@
   text-wrap: pretty;
 }
 
-/* Vòng focus chỉ hiện khi dùng bàn phím (:focus-visible), chạm tay không thấy. */
+/* Focus ring only shows for keyboard use (:focus-visible), not on touch. */
 .app :focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
@@ -50,7 +50,7 @@
   outline: none;
 }
 
-/* Phản hồi khi chạm: đổi nền/độ mờ, không làm xê dịch bố cục. */
+/* Touch feedback: change background/opacity without shifting layout. */
 .row,
 .catRow,
 .chip,
@@ -157,7 +157,7 @@
   background: none;
 }
 
-/* ---------- Khối ---------- */
+/* ---------- Cards ---------- */
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -214,7 +214,7 @@
   color: var(--expense);
 }
 
-/* Số còn lại */
+/* Remaining amount */
 .heroLabel {
   font-size: 14px;
   font-weight: 500;
@@ -313,7 +313,7 @@
   margin-top: 12px;
 }
 
-/* Thu / Chi / Dư */
+/* Income / Expense / Net */
 .stats {
   padding: 4px 16px;
 }
@@ -343,7 +343,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- Danh sách ---------- */
+/* ---------- Lists ---------- */
 .list {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -372,7 +372,7 @@
 .editRow + .row,
 .editor + .row,
 .row + .editor {
-  /* Kẻ bằng bóng trong để mọi dòng cao bằng nhau */
+  /* Dividers use an inset shadow so every row has the same height */
   box-shadow: inset 0 1px 0 var(--line);
 }
 
@@ -403,7 +403,7 @@
   background: var(--grout);
 }
 
-/* Ô icon danh mục: nền là màu danh mục pha nhạt, icon pha với màu chữ để đủ tương phản 3:1 ở cả 2 theme. */
+/* Category icon tile: tinted category color background; the icon is mixed with the text color for 3:1 contrast in both themes. */
 .bubble {
   width: 40px;
   height: 40px;
@@ -539,7 +539,7 @@
   color: var(--muted);
 }
 
-/* ---------- Lọc ---------- */
+/* ---------- Filters ---------- */
 .chipsWrap {
   margin: 0 -16px 4px;
 }
@@ -573,7 +573,7 @@
   cursor: pointer;
 }
 
-/* Mở rộng vùng chạm lên 44px mà không đổi kích thước chip */
+/* Extend the touch target to 44px without resizing the chip */
 .chip::before {
   content: "";
   position: absolute;
@@ -626,7 +626,7 @@
   box-shadow: 0 0 0 3px var(--ring);
 }
 
-/* ---------- Thanh dưới ---------- */
+/* ---------- Bottom bar ---------- */
 .nav {
   position: fixed;
   inset: auto 0 0 0;
@@ -758,11 +758,20 @@
   cursor: pointer;
 }
 
-/* Vùng chạm 46px: tràn vào phần đệm của khối seg */
+/* 46px touch target: spills into the segmented control's padding */
 .seg button::before {
   content: "";
   position: absolute;
   inset: -3px 0;
+}
+
+.langSeg {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.langSeg button {
+  flex: 1;
 }
 
 .seg button[aria-pressed="true"] {
@@ -797,7 +806,7 @@
   flex: none;
 }
 
-/* Máy rất hẹp: nút ngày chỉ còn icon để số tiền đủ chỗ */
+/* Very narrow screens: the date button shows only its icon so the amount fits */
 @media (max-width: 359px) {
   .dateLabel {
     position: absolute;
@@ -1020,7 +1029,7 @@
   cursor: pointer;
 }
 
-/* Chọn tháng */
+/* Month picker */
 .monthGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1044,7 +1053,7 @@
   font-weight: 700;
 }
 
-/* ---------- Trạng thái ---------- */
+/* ---------- States ---------- */
 .sk {
   border-radius: 8px;
   background: var(--grout);
@@ -1094,7 +1103,7 @@
   font-size: 15px;
 }
 
-/* ---------- Cài đặt ---------- */
+/* ---------- Settings ---------- */
 .editor {
   padding: 12px 16px;
   background: var(--grout);
@@ -1196,7 +1205,7 @@
   margin-top: 12px;
 }
 
-/* ---------- Chia tiền ---------- */
+/* ---------- Split bill ---------- */
 .saveRow {
   display: flex;
   gap: 8px;
@@ -1208,7 +1217,7 @@
   padding: 0 16px;
 }
 
-/* Sheet chia tiền nằm trên sheet giao dịch */
+/* The split sheet stacks above the transaction sheet */
 .scrim.layer2 {
   z-index: 30;
 }
@@ -1268,7 +1277,7 @@
   text-align: center;
 }
 
-/* Mã QR luôn trên nền trắng để app ngân hàng quét được cả khi dùng giao diện tối */
+/* QR codes always sit on white so banking apps can scan them in dark mode too */
 .qrImg {
   width: min(52vw, 220px);
   aspect-ratio: 1;

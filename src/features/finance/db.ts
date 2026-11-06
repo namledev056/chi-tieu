@@ -1,12 +1,13 @@
 import Dexie, { type EntityTable } from "dexie";
 import { CATEGORY_ICONS, DEFAULT_ICON, EMOJI_TO_ICON } from "./icons";
+import { DICTS, detectLang } from "./i18n";
 
 export type TxType = "income" | "expense";
 
 export interface Category {
   id: number;
   name: string;
-  /** Khóa icon Lucide, xem CATEGORY_ICONS trong icons.tsx */
+  /** Lucide icon key, see CATEGORY_ICONS in icons.tsx */
   icon: string;
   color: string;
   type: TxType;
@@ -16,10 +17,10 @@ export interface Category {
 export interface Transaction {
   id: number;
   type: TxType;
-  /** Số nguyên VND, luôn dương. */
+  /** Integer VND, always positive. */
   amount: number;
   categoryId: number;
-  /** YYYY-MM-DD theo giờ địa phương */
+  /** YYYY-MM-DD in local time */
   date: string;
   note: string;
   createdAt: number;
@@ -33,6 +34,7 @@ export interface Budget {
   limit: number;
 }
 
+/** Default categories; names are replaced by the user's language on first run (see i18n.tsx). */
 export const DEFAULT_CATEGORIES: Omit<Category, "id">[] = [
   { name: "Ăn uống", icon: "utensils", color: "#e8590c", type: "expense", order: 0 },
   { name: "Đi lại", icon: "bike", color: "#1c7ed6", type: "expense", order: 1 },
@@ -49,7 +51,7 @@ export const DEFAULT_CATEGORIES: Omit<Category, "id">[] = [
   { name: "Thu khác", icon: "piggy-bank", color: "#74b816", type: "income", order: 12 },
 ];
 
-/** Cài đặt dạng khóa–giá trị, vd { key: "payee", value: Payee } */
+/** Key–value settings, e.g. { key: "payee", value: Payee } */
 export interface Setting {
   key: string;
   value: unknown;
@@ -68,7 +70,7 @@ class FinanceDB extends Dexie {
       categories: "++id, type",
       budgets: "++id, &[categoryId+month], month, categoryId",
     });
-    // v2: icon danh mục đổi từ emoji sang khóa icon SVG.
+    // v2: category icons moved from emoji to SVG icon keys.
     this.version(2).upgrade((tx) =>
       tx
         .table("categories")
@@ -78,10 +80,12 @@ class FinanceDB extends Dexie {
           c.icon = EMOJI_TO_ICON[c.icon.trim()] ?? DEFAULT_ICON[c.type] ?? "tag";
         }),
     );
-    // v3: bảng cài đặt (tài khoản nhận tiền khi chia tiền).
+    // v3: settings table (receiving account for bill splitting).
     this.version(3).stores({ settings: "key" });
     this.on("populate", (tx) => {
-      tx.table("categories").bulkAdd(DEFAULT_CATEGORIES);
+      // Seed default categories in the user's language.
+      const names = DICTS[detectLang()].defaultCategories;
+      tx.table("categories").bulkAdd(DEFAULT_CATEGORIES.map((c, i) => ({ ...c, name: names[i] ?? c.name })));
     });
   }
 }
